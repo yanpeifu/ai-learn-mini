@@ -81,16 +81,24 @@ DEFAULT_OUTDIR = str(Path(__file__).resolve().parent / "reports")
 MIN_QUESTIONS = 8
 MAX_QUESTIONS = 12
 MIN_EXPLANATION_CHARS = 40
-MIN_STEM_CHARS = 8
+MIN_STEM_CHARS = 6                # 判断题与"XX是指？"这类短题干是正常的
 MAX_STEM_CHARS = 150
-DUPLICATE_STEM_RATIO = 0.85
-DUPLICATE_OPTION_OVERLAP = 0.50   # 判"重复题"时，选项也要有这么多重合
+DUPLICATE_STEM_RATIO = 0.90
+DUPLICATE_OPTION_OVERLAP = 0.75   # 判"重复题"时，选项也要有这么多重合
 ANSWER_SKEW_RATIO = 0.60          # 单一选项占比超过此值 -> 警告
 
 PENALTY = {"error": 8, "warn": 3}
 
 # 模型返回的 JSON 解析失败时，自动重试的次数
 PARSE_RETRIES = 2
+
+# 出现这些错误说明是账号或密钥层面的问题，重试和继续执行都没有意义
+FATAL_ERROR_MARKERS = ("HTTP 401", "HTTP 402", "HTTP 403")
+
+
+def is_fatal_error(message: str) -> bool:
+    """判断是否是"继续跑下去也没用"的错误（密钥无效 / 余额不足 / 无权限）。"""
+    return any(marker in message for marker in FATAL_ERROR_MARKERS)
 
 # 低质量选项（教研上公认的"送分/无效"选项）
 LOW_QUALITY_OPTION_PATTERNS = [
@@ -104,14 +112,18 @@ LOW_QUALITY_OPTION_PATTERNS = [
 JUDGE_OPTION_TEXTS = {"正确", "错误", "对", "错", "是", "否", "true", "false"}
 VALID_TYPES = {"single", "multiple", "judge"}
 
+# 选项字母后面不能紧跟其它字母或数字。
+# 否则「正确选项是DNA的一条链」里的 D 会被误当成选项 D（中英混排陷阱）。
+_OPT_LETTER = r"([A-D](?![A-Za-z0-9_])(?:\s*[、,，和及与]\s*[A-D](?![A-Za-z0-9_]))*)"
+
 # 讲解中"断言答案是 X"的表述，例如"正确选项是 C""正确答案应为 A、B、C"
 ANSWER_ASSERT_RE = re.compile(
     r"(?:正确选项|正确答案|参考答案|标准答案|本题答案|答案)\s*"
     r"(?:是|为|应为|应该是|：|:)?\s*"
-    r"([A-D](?:\s*[、,，和及与]\s*[A-D])*)"
+    + _OPT_LETTER
 )
 # "故选 X""应选 X"这类表述，需要结合上下文判断是肯定还是否定
-CHOICE_RE = re.compile(r"选\s*([A-D])")
+CHOICE_RE = re.compile(r"选\s*([A-D](?![A-Za-z0-9_]))")
 # 否定/假设语境：出现在选项字母之前或之后，说明这是在解释"错误选项"
 NEG_HEAD_RE = re.compile(r"(?:不|未|别|勿|排除|排除掉)$")
 NEG_TAIL_RE = re.compile(
@@ -468,6 +480,10 @@ JSON 结构如下：
 10. 所有文本中禁止使用英文双引号 "，需要引用时一律使用中文引号「」，
     以免破坏 JSON 结构导致整份结果无法解析。
 11. 输出必须是完整闭合的合法 JSON，不要在结尾被截断。
+12. options 的 key 必须从 A 开始连续编号（A、B、C、D），不允许跳号或缺号；
+    answer 只能引用已经给出的选项 key，绝不能引用不存在的选项。
+    输出前请逐一自检：每个 answer 里的字母都能在该题的 options 中找到。
+13. 语义不同的题目不要复用同一套选项，避免用户产生"又是这道题"的感觉。
 """
 
 
@@ -1200,7 +1216,9 @@ def audit_case(payload: dict[str, Any]) -> list[Issue]:
         stem = str(q.get("stem", "")).strip()
         stem_norm = _norm(stem)
         if stem:
-            if len(stem) < MIN_STEM_CHARS:
+            # 判断题的题干本身就是一句简短陈述，不适用"题干过短"的下限；
+            # 单选题里"XX是指？"这类定义型题干也很短，同样属于正常写法。
+            if qtype != "judge" and len(stem) < MIN_STEM_CHARS:
                 warn("stem_too_short", f"题干过短（{len(stem)} 字）", where)
             if len(stem) > MAX_STEM_CHARS:
                 warn("stem_too_long", f"题干过长（{len(stem)} 字）", where)
@@ -1400,6 +1418,7 @@ def run_case(sample: dict[str, str], *, mock: bool = False,
                     break
                 except Exception as exc:                     # noqa: BLE001
                     last_err = exc
+                    result.parse_retries = attempt
                     if attempt < PARSE_RETRIES:
                         time.sleep(1.5)
             if payload is None:
@@ -1432,6 +1451,10 @@ def render_markdown(results: list[CaseResult], meta: dict[str, Any]) -> str:
     add(f"- 模型：{meta['model']}")
     add(f"- 样例数量：{len(results)}")
     add("")
+    if meta.get("aborted_reason"):
+        add(f"> ⚠️ **本次运行被提前中止**：{str(meta['aborted_reason'])[:200]}")
+        add("> 剩余样例未执行，下面的生成成功率与平均分只反映已执行的部分。")
+        add("")
 
     # ---------- 汇总 ----------
     # 只统计"成功生成"的样例。生成失败单独用成功率体现，
@@ -1857,6 +1880,7 @@ def main(argv: list[str] | None = None) -> int:
     print("-" * 70)
 
     results: list[CaseResult] = []
+    aborted_reason = ""
     for idx, (sample, mock_payload) in enumerate(plan, 1):
         prefix = f"[{idx}/{len(plan)}] {sample['id']} {sample['domain']}·{sample['title']}"
         print(f"{prefix} ... ", end="", flush=True)
@@ -1866,7 +1890,19 @@ def main(argv: list[str] | None = None) -> int:
         )
         results.append(result)
         if result.error:
-            print(f"失败（{result.error[:60]}）")
+            print(f"失败（{result.error[:80]}）")
+            if is_fatal_error(result.error):
+                aborted_reason = result.error
+                print()
+                print("!" * 70)
+                print("[已中止] 遇到无法通过重试解决的问题，后续样例不再执行。")
+                print(f"  原因：{result.error[:200]}")
+                print("  常见情况：HTTP 401 = API Key 无效或过期；"
+                      "HTTP 402 = 账户余额不足；HTTP 403 = 无权限")
+                print("  处理完之后重新运行即可；本次已完成的结果仍会生成报告。")
+                print("!" * 70)
+                print()
+                break
         else:
             print(f"得分 {result.score}（错误 {result.n_error} / 警告 {result.n_warn}）"
                   f" {result.elapsed:.1f}s")
@@ -1880,6 +1916,8 @@ def main(argv: list[str] | None = None) -> int:
         "mode": mode,
         "model": model,
     }
+    if aborted_reason:
+        meta["aborted_reason"] = aborted_reason
     report_text = render_markdown(results, meta)
     report_path = outdir / f"quality_report_{stamp}.md"
     raw_path = outdir / f"raw_{stamp}.json"
