@@ -1,0 +1,33 @@
+# 检测报告（含大量生成内容，不建议入库；如需留档请手动挑选）
+reports/
+
+# 环境变量
+.env
+*.env
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Node / 小程序
+node_modules/
+dist/
+.taro/
+miniprogram_npm/
+
+# 编辑器
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 系统
+.DS_Store
+Thumbs.db
