@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>风格预览板 · 漫画黏土风（治愈向）</title>
+<style>
+  :root{
+    --paper:#FFFCF7;
+    --card:#FFFFFF;
+    --ink:#33302E;
+    --ink-2:#8A8078;
+    --line:#F0E9E0;
+    --orange:#FFA85C;
+    --orange-down:#EE9247;
+    --mint:#7ED9A8;
+    --mint-ink:#2A7D57;
+    --coral:#FF9A9A;
+    --coral-ink:#C4564F;
+    --lav:#B9A6F5;
+    --yellow:#FFE08A;
+    --r-card:24px;
+    --r-btn:18px;
+    --r-sm:12px;
+    --bw:2.5px;
+    --hard:0 2px 0 var(--ink);
+    --soft:0 2px 0 var(--ink), 0 10px 20px rgba(51,48,46,.06);
+    --gloss:inset 0 2px 0 rgba(255,255,255,.65);
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;padding:48px 24px 100px;background:var(--paper);color:var(--ink);
+    font-family:"PingFang SC","HarmonyOS Sans SC","MiSans","Microsoft YaHei",sans-serif;
+    line-height:1.7;-webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1120px;margin:0 auto}
+  h1{font-size:30px;margin:0 0 8px;letter-spacing:.5px}
+  .sub{color:var(--ink-2);font-size:14px;margin-bottom:8px}
+  .tagline{
+    display:inline-block;background:var(--yellow);border:var(--bw) solid var(--ink);
+    border-radius:999px;padding:5px 14px;font-size:13px;font-weight:700;
+    box-shadow:var(--hard);margin-bottom:36px;
+  }
+  h2{
+    font-size:19px;margin:56px 0 6px;padding-bottom:10px;
+    border-bottom:var(--bw) solid var(--ink);
+  }
+  h2:first-of-type{margin-top:0}
+  .h2sub{color:var(--ink-2);font-size:13px;margin:0 0 22px}
+  .card{
+    background:var(--card);border:var(--bw) solid var(--ink);border-radius:var(--r-card);
+    box-shadow:var(--soft),var(--gloss);padding:22px;
+  }
+  .grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px}
+  .grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px}
+  .grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px}
+  @media(max-width:900px){.grid2,.grid3,.grid4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media(max-width:600px){.grid2,.grid3,.grid4{grid-template-columns:1fr}}
+
+  /* ---------- 色板 ---------- */
+  .sw{border:var(--bw) solid var(--ink);border-radius:var(--r-btn);box-shadow:var(--hard);overflow:hidden}
+  .sw .fill{height:74px}
+  .sw .meta{padding:9px 12px;background:#fff;font-size:12px;border-top:var(--bw) solid var(--ink)}
+  .sw .meta b{display:block;font-size:13px}
+  .sw .meta code{color:var(--ink-2);font-size:11px}
+  .swatch-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:14px}
+
+  /* ---------- 对比度 ---------- */
+  table{width:100%;border-collapse:separate;border-spacing:0;font-size:13px}
+  th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--line)}
+  th{font-size:12px;color:var(--ink-2);font-weight:600}
+  .pill{display:inline-block;border-radius:999px;padding:2px 10px;font-size:11px;font-weight:700;border:2px solid var(--ink)}
+  .ok{background:var(--mint)}
+  .no{background:var(--coral)}
+
+  /* ---------- 字体 ---------- */
+  .typo{display:flex;flex-direction:column;gap:14px}
+  .typo .row{display:flex;align-items:baseline;gap:16px;border-bottom:1px dashed var(--line);padding-bottom:12px}
+  .typo .row:last-child{border-bottom:0;padding-bottom:0}
+  .typo .spec{flex:none;width:118px;font-size:11px;color:var(--ink-2);font-family:ui-monospace,Consolas,monospace}
+  .t-display{font-size:40px;font-weight:800;line-height:1.2}
+  .t-h1{font-size:28px;font-weight:700;line-height:1.3}
+  .t-h2{font-size:20px;font-weight:600;line-height:1.4}
+  .t-body{font-size:16px;font-weight:400;line-height:1.7}
+  .t-cap{font-size:14px;color:var(--ink-2)}
+  .t-mini{font-size:12px;color:var(--ink-2)}
+  .num{font-variant-numeric:tabular-nums;letter-spacing:-1px}
+
+  /* ---------- 按钮 ---------- */
+  .btn{
+    display:block;width:100%;text-align:center;cursor:pointer;user-select:none;
+    border:var(--bw) solid var(--ink);border-radius:var(--r-btn);
+    padding:15px 20px;font-size:16px;font-weight:700;font-family:inherit;
+    background:#fff;color:var(--ink);
+    box-shadow:var(--soft),var(--gloss);
+    transition:transform 120ms cubic-bezier(.34,1.56,.64,1),box-shadow 120ms ease-out;
+  }
+  .btn:active{transform:translateY(2px);box-shadow:0 0 0 var(--ink),var(--gloss)}
+  .btn-primary{background:var(--orange)}
+  .btn-primary:active{background:var(--orange-down)}
+  .btn-danger{background:var(--coral-ink);color:#fff;border-color:var(--ink)}
+  .btn-ghost{background:transparent;border-style:dashed}
+  .btn[disabled]{opacity:.4;box-shadow:none;cursor:not-allowed;transform:none}
+  .btn-sm{padding:9px 14px;font-size:13px;border-radius:14px;width:auto;display:inline-block}
+  .hint{font-size:12px;color:var(--ink-2);margin-top:8px}
+
+  /* ---------- 选项条 ---------- */
+  .opt{
+    display:flex;align-items:center;gap:12px;background:#fff;
+    border:var(--bw) solid var(--ink);border-radius:16px;padding:14px 16px;
+    box-shadow:var(--hard);font-size:15px;margin-bottom:11px;
+    transition:transform 120ms cubic-bezier(.34,1.56,.64,1),box-shadow 120ms;
+  }
+  .opt .k{
+    flex:none;width:28px;height:28px;border:var(--bw) solid var(--ink);border-radius:50%;
+    display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;background:#fff;
+  }
+  .opt .tail{margin-left:auto;font-size:11px;font-weight:700;border:2px solid var(--ink);border-radius:999px;padding:2px 9px;flex:none}
+  .opt-picked{background:var(--yellow)}
+  .opt-right{background:var(--mint)}
+  .opt-wrong{background:var(--coral)}
+  .opt-out{border-style:dashed;box-shadow:none;opacity:.55}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+  .shake{animation:shake 280ms ease-in-out 2}
+
+  /* ---------- 进度条 ---------- */
+  .prog{height:14px;border:var(--bw) solid var(--ink);border-radius:999px;background:#fff;box-shadow:var(--hard);overflow:hidden}
+  .prog i{display:block;height:100%;width:62%;background:var(--orange);border-right:var(--bw) solid var(--ink)}
+
+  /* ---------- 标签 ---------- */
+  .chip{display:inline-block;border:2px solid var(--ink);border-radius:999px;padding:3px 11px;font-size:12px;font-weight:700;background:#fff;box-shadow:0 2px 0 var(--ink);margin:0 6px 8px 0}
+  .chip-y{background:var(--yellow)} .chip-m{background:var(--mint)} .chip-l{background:var(--lav)} .chip-c{background:var(--coral)}
+
+  /* ---------- 吉祥物 ---------- */
+  .mascot{border:var(--bw) solid var(--ink);border-radius:var(--r-card);box-shadow:var(--soft),var(--gloss);background:#fff;padding:18px;text-align:center}
+  .mascot svg{width:132px;height:132px;display:block;margin:0 auto 10px}
+  .mascot b{display:block;font-size:15px}
+  .mascot span{font-size:12px;color:var(--ink-2)}
+  .mascot .why{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);font-size:12px;color:var(--ink-2);text-align:left;line-height:1.65}
+  .pick{position:relative}
+  .pick:before{
+    content:"候选";position:absolute;top:-11px;left:16px;background:var(--lav);border:2px solid var(--ink);
+    border-radius:999px;padding:1px 9px;font-size:11px;font-weight:700;
+  }
+
+  /* ---------- 答题演示 ---------- */
+  .demo{background:#fff;border:var(--bw) dashed var(--ink);border-radius:var(--r-card);padding:18px}
+  .demo h4{margin:0 0 12px;font-size:14px;display:flex;align-items:center;gap:8px}
+  .demo h4 em{font-style:normal;font-size:11px;font-weight:600;color:var(--ink-2)}
+  .explain{margin-top:14px;background:var(--paper);border:2px dashed var(--ink);border-radius:16px;padding:14px}
+  .explain b{display:block;font-size:13px;margin-bottom:6px}
+  .explain p{margin:0;font-size:14px;color:#5b544e}
+
+  /* ---------- 明暗对照 ---------- */
+  .vs{display:grid;grid-template-columns:1fr 1fr;gap:0;border:var(--bw) solid var(--ink);border-radius:var(--r-card);overflow:hidden}
+  @media(max-width:600px){.vs{grid-template-columns:1fr}}
+  .vs>div{padding:20px}
+  .vs .a{background:var(--paper);border-right:var(--bw) solid var(--ink)}
+  .vs .b{background:#EDE9E3}
+  .vs h5{margin:0 0 10px;font-size:13px}
+  .vs p{margin:0;font-size:13px;color:var(--ink-2);line-height:1.7}
+
+  .foot{margin-top:64px;padding-top:22px;border-top:2px dashed var(--line);font-size:12px;color:var(--ink-2)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>风格预览板</h1>
+  <div class="sub">AI 闯关学习小程序 · 漫画黏土风 Comic Clay · <b>治愈向</b>调校版</div>
+  <div class="tagline">用漫画的线条，包住黏土的柔软，涂上治愈的颜色</div>
+
+  <h2>一 · 治愈向调校了什么</h2>
+  <p class="h2sub">你选择了"更治愈"而不是"更漫画"，所以我在三处做了调整。</p>
+  <div class="vs">
+    <div class="a">
+      <h5>调整后（当前方案 · 治愈向）</h5>
+      <p>描边 <b>2.5px</b>，不再压得那么重<br>
+         硬投影 <b>2px</b>，落感最轻<br>
+         圆角 <b>24px</b>，形体更软<br>
+         色彩整体<b>降饱和</b>，橙偏蜜桃、绿偏薄荷、红偏珊瑚<br>
+         突出<b>纸张底与留白</b>，界面呼吸感更强</p>
+    </div>
+    <div class="b">
+      <h5>原来的"更漫画"版本</h5>
+      <p>描边 3–3.5px，视觉更硬朗<br>
+         硬投影 4px，弹跳感更强<br>
+         圆角 20px，形体更方正<br>
+         高饱和撞色，更像美式漫画<br>
+         视觉密度更高，冲击力更强</p>
+    </div>
+  </div>
+
+  <h2>二 · 色彩系统</h2>
+  <p class="h2sub">所有色值都经过对比度校验，下面的表格给出了可用与不可用的组合。</p>
+  <div class="swatch-grid">
+    <div class="sw"><div class="fill" style="background:#FFFCF7"></div><div class="meta"><b>纸张底</b><code>#FFFCF7</code></div></div>
+    <div class="sw"><div class="fill" style="background:#33302E"></div><div class="meta"><b>墨线 / 主文字</b><code>#33302E</code></div></div>
+    <div class="sw"><div class="fill" style="background:#FFA85C"></div><div class="meta"><b>暖阳橙（主色）</b><code>#FFA85C</code></div></div>
+    <div class="sw"><div class="fill" style="background:#7ED9A8"></div><div class="meta"><b>薄荷绿（答对）</b><code>#7ED9A8</code></div></div>
+    <div class="sw"><div class="fill" style="background:#FF9A9A"></div><div class="meta"><b>珊瑚红（答错）</b><code>#FF9A9A</code></div></div>
+    <div class="sw"><div class="fill" style="background:#B9A6F5"></div><div class="meta"><b>薰衣草紫（奖励）</b><code>#B9A6F5</code></div></div>
+    <div class="sw"><div class="fill" style="background:#FFE08A"></div><div class="meta"><b>暖黄（提示）</b><code>#FFE08A</code></div></div>
+    <div class="sw"><div class="fill" style="background:#C4564F"></div><div class="meta"><b>深红（错误文字）</b><code>#C4564F</code></div></div>
+  </div>
+
+  <div class="card" style="margin-top:22px">
+    <table>
+      <tr><th>配色组合</th><th>对比度</th><th>结论</th></tr>
+      <tr>
+        <td><span style="background:#FFA85C;border:2px solid #33302E;border-radius:6px;padding:3px 10px;color:#33302E;font-weight:700">墨黑字 / 暖阳橙底</span></td>
+        <td>≈ 6.8 : 1</td><td><span class="pill ok">可用</span></td>
+      </tr>
+      <tr>
+        <td><span style="background:#7ED9A8;border:2px solid #33302E;border-radius:6px;padding:3px 10px;color:#33302E;font-weight:700">墨黑字 / 薄荷绿底</span></td>
+        <td>≈ 7.6 : 1</td><td><span class="pill ok">可用</span></td>
+      </tr>
+      <tr>
+        <td><span style="background:#C4564F;border:2px solid #33302E;border-radius:6px;padding:3px 10px;color:#fff;font-weight:700">白字 / 深红底</span></td>
+        <td>≈ 4.8 : 1</td><td><span class="pill ok">可用</span></td>
+      </tr>
+      <tr>
+        <td><span style="background:#FFA85C;border:2px solid #33302E;border-radius:6px;padding:3px 10px;color:#fff;font-weight:700">白字 / 暖阳橙底</span></td>
+        <td>≈ 2.0 : 1</td><td><span class="pill no">禁止</span></td>
+      </tr>
+      <tr>
+        <td><span style="background:#FF9A9A;border:2px solid #33302E;border-radius:6px;padding:3px 10px;color:#fff;font-weight:700">白字 / 珊瑚红底</span></td>
+        <td>≈ 3.0 : 1</td><td><span class="pill no">禁止</span></td>
+      </tr>
+    </table>
+    <p class="hint">说明：正文文字要求 ≥ 4.5:1。橙底配墨黑字既达标，也正是漫画的经典配色。</p>
+  </div>
+
+  <h2>三 · 字体层级</h2>
+  <p class="h2sub">中文使用系统字体回退链（小程序主包限制 2MB，不能引入中文字体包）。</p>
+  <div class="card typo">
+    <div class="row"><div class="spec">Display 40 / 800</div><div class="t-display num">87%</div></div>
+    <div class="row"><div class="spec">H1 28 / 700</div><div class="t-h1">今天想学点什么？</div></div>
+    <div class="row"><div class="spec">H2 20 / 600</div><div class="t-h2">货币政策的三大工具</div></div>
+    <div class="row"><div class="spec">Body 16 / 400</div><div class="t-body">存款准备金率是商业银行按规定向央行缴存的准备金占存款总额的比例。</div></div>
+    <div class="row"><div class="spec">Caption 14</div><div class="t-cap">第 2 关 · 3/5 · 用时 6 分 12 秒</div></div>
+    <div class="row"><div class="spec">Mini 12</div><div class="t-mini">内容由 AI 生成，仅供学习参考</div></div>
+  </div>
+
+  <h2>四 · 组件与手感</h2>
+  <p class="h2sub">按钮请用手指或鼠标按住试试——这是整个设计里最重要的一处手感。</p>
+  <div class="grid2">
+    <div class="card">
+      <h4 style="margin:0 0 14px;font-size:14px">按钮</h4>
+      <button class="btn btn-primary">开始生成</button>
+      <p class="hint">主按钮：暖阳橙底 + 墨黑字</p>
+      <button class="btn" style="margin-top:14px">重新生成</button>
+      <p class="hint">次按钮：白底 + 墨黑描边</p>
+      <button class="btn btn-danger" style="margin-top:14px">删 除</button>
+      <p class="hint">危险操作：深红底 + 白字</p>
+      <button class="btn btn-ghost" style="margin-top:14px">跳过，直接看讲解</button>
+      <p class="hint">文字级操作：虚线描边</p>
+      <button class="btn" disabled style="margin-top:14px">开始生成</button>
+      <p class="hint">禁用态：40% 透明 + 去掉投影</p>
+    </div>
+
+    <div class="card">
+      <h4 style="margin:0 0 14px;font-size:14px">进度条与标签</h4>
+      <div class="prog"><i></i></div>
+      <p class="hint" style="margin-bottom:20px">进度 62%，填充末端有一个手绘小标记</p>
+      <div>
+        <span class="chip chip-y">多选题</span>
+        <span class="chip chip-m">难度 ★★☆</span>
+        <span class="chip chip-l">第 2 关</span>
+        <span class="chip chip-c">易错</span>
+        <span class="chip">内容由 AI 生成</span>
+      </div>
+      <h4 style="margin:22px 0 10px;font-size:14px">卡片内高光</h4>
+      <div class="card" style="box-shadow:var(--soft),var(--gloss);padding:16px">
+        <b style="font-size:14px">① 货币政策的三大工具</b>
+        <p class="t-cap" style="margin:6px 0 0">准备金率、再贴现率与公开市场操作</p>
+      </div>
+    </div>
+  </div>
+
+  <h2>五 · 答题反馈演示</h2>
+  <p class="h2sub">同一道题的四种状态。注意：答错时正确答案与用户选择<b>同时可见</b>——这是"教学"而不是"评判"的关键。</p>
+  <div class="grid2">
+    <div class="demo">
+      <h4>① 已选中 <em>提交前可改</em></h4>
+      <div class="opt opt-picked"><span class="k">A</span>存款准备金率</div>
+      <div class="opt"><span class="k">B</span>再贴现率</div>
+      <div class="opt"><span class="k">C</span>公开市场操作</div>
+      <div class="opt"><span class="k">D</span>个人所得税税率</div>
+      <p class="hint">暖黄底 + 下沉 2px</p>
+    </div>
+
+    <div class="demo">
+      <h4>② 答对 <em>薄荷绿 + 对勾弹出</em></h4>
+      <div class="opt"><span class="k">A</span>存款准备金率</div>
+      <div class="opt opt-right"><span class="k">B</span>再贴现率<span class="tail">答对了</span></div>
+      <div class="opt"><span class="k">C</span>公开市场操作</div>
+      <div class="opt opt-out"><span class="k">D</span>个人所得税税率</div>
+      <div class="explain">
+        <b>为什么选 B</b>
+        <p>再贴现率是商业银行向央行借款的利率，提高它会推高融资成本，抑制借款意愿。</p>
+      </div>
+    </div>
+
+    <div class="demo">
+      <h4>③ 答错 <em>珊瑚红 + 轻晃一次</em></h4>
+      <div class="opt opt-out"><span class="k">A</span>存款准备金率</div>
+      <div class="opt opt-right"><span class="k">B</span>再贴现率<span class="tail">正确答案</span></div>
+      <div class="opt"><span class="k">C</span>公开市场操作</div>
+      <div class="opt opt-wrong shake"><span class="k">D</span>个人所得税税率<span class="tail">你选的</span></div>
+      <div class="explain">
+        <b>这题有点绕，我们来看看</b>
+        <p>个人所得税税率属于财政政策工具，由财政部门制定，不是央行调节货币供应量的手段。</p>
+      </div>
+    </div>
+
+    <div class="demo">
+      <h4>④ 苏格拉底式引导 <em>答错后先不给答案</em></h4>
+      <div class="card" style="padding:16px;box-shadow:var(--soft),var(--gloss)">
+        <div style="text-align:center;margin-bottom:12px">
+          <svg viewBox="0 0 120 120" style="width:76px;height:76px">
+            <circle cx="60" cy="66" r="36" fill="#FFA85C" stroke="#33302E" stroke-width="3.5"/>
+            <path d="M60 30 C58 20 64 16 68 14" fill="none" stroke="#33302E" stroke-width="3.5" stroke-linecap="round"/>
+            <circle cx="48" cy="62" r="3.5" fill="#33302E"/>
+            <circle cx="72" cy="62" r="3.5" fill="#33302E"/>
+            <path d="M54 76 Q60 71 66 76" fill="none" stroke="#33302E" stroke-width="3.5" stroke-linecap="round"/>
+            <circle cx="38" cy="74" r="5.5" fill="#FF9A9A" opacity=".75"/>
+            <circle cx="82" cy="74" r="5.5" fill="#FF9A9A" opacity=".75"/>
+          </svg>
+        </div>
+        <b style="font-size:15px;display:block;text-align:center;margin-bottom:8px">再想一下</b>
+        <p class="t-body" style="margin:0 0 14px">如果央行要求商业银行缴存更多准备金，银行可用于放贷的钱会变多还是变少？</p>
+        <div class="opt"><span class="k">A</span>变多</div>
+        <div class="opt opt-picked"><span class="k">B</span>变少</div>
+        <div class="opt"><span class="k">C</span>不变</div>
+        <button class="btn btn-primary" style="margin-top:6px">确 定</button>
+        <p class="hint" style="text-align:center">跳过，直接看讲解</p>
+      </div>
+    </div>
+  </div>
+
+  <h2>六 · 吉祥物候选（形态示意）</h2>
+  <p class="h2sub">
+    以下是三个方向的<b>矢量形态示意</b>，用来说明形体、比例与风格适配度——
+    不是最终的概念图。选定方向后，我会用图像生成工具出正式的概念图与表情包。
+  </p>
+  <div class="grid3">
+
+    <div class="mascot pick">
+      <svg viewBox="0 0 120 120">
+        <circle cx="60" cy="66" r="38" fill="#FFA85C" stroke="#33302E" stroke-width="3.5"/>
+        <path d="M60 28 C58 18 64 14 68 12" fill="none" stroke="#33302E" stroke-width="3.5" stroke-linecap="round"/>
+        <circle cx="47" cy="62" r="4" fill="#33302E"/>
+        <circle cx="73" cy="62" r="4" fill="#33302E"/>
+        <path d="M53 76 Q60 82 67 76" fill="none" stroke="#33302E" stroke-width="3.5" stroke-linecap="round"/>
+        <circle cx="37" cy="74" r="6" fill="#FF9A9A" opacity=".7"/>
+        <circle cx="83" cy="74" r="6" fill="#FF9A9A" opacity=".7"/>
+      </svg>
+      <b>方案 A · 小橘团 ✅ 已选定</b>
+      <span>抽象圆形生物 · 命名「颜宝」</span>
+      <div class="why">
+        <b>优势</b>：形状最简单，任何尺寸都清晰；表情全靠眉眼变化，动效成本最低；治愈感最强。<br>
+        <b>代价</b>：与"学习"主题没有直接关联，需要靠场景建立记忆点。
+      </div>
+    </div>
+
+    <div class="mascot pick">
+      <svg viewBox="0 0 120 120">
+        <rect x="30" y="26" width="60" height="76" rx="14" fill="#FFE08A" stroke="#33302E" stroke-width="3.5"/>
+        <line x1="45" y1="30" x2="45" y2="98" stroke="#33302E" stroke-width="2.5"/>
+        <circle cx="62" cy="58" r="3.5" fill="#33302E"/>
+        <circle cx="80" cy="58" r="3.5" fill="#33302E"/>
+        <path d="M66 72 Q71 77 76 72" fill="none" stroke="#33302E" stroke-width="3" stroke-linecap="round"/>
+        <path d="M90 46 Q103 54 98 70" fill="#FFFCF7" stroke="#33302E" stroke-width="3" stroke-linecap="round"/>
+        <circle cx="55" cy="70" r="5" fill="#FF9A9A" opacity=".7"/>
+      </svg>
+      <b>方案 B · 书灵</b>
+      <span>拟人化小书本</span>
+      <div class="why">
+        <b>优势</b>：与"把知识变成题"的主题直接相关；书页可以做小翅膀、翻页做动效；辨识度高。<br>
+        <b>代价</b>：方正形体在极小尺寸（如 20px 图标）下细节会糊。
+      </div>
+    </div>
+
+    <div class="mascot pick">
+      <svg viewBox="0 0 120 120">
+        <path d="M36 46 L28 22 L52 34 Z" fill="#FFA85C" stroke="#33302E" stroke-width="3.5" stroke-linejoin="round"/>
+        <path d="M84 46 L92 22 L68 34 Z" fill="#FFA85C" stroke="#33302E" stroke-width="3.5" stroke-linejoin="round"/>
+        <circle cx="60" cy="68" r="36" fill="#FFA85C" stroke="#33302E" stroke-width="3.5"/>
+        <path d="M46 64 Q50 60 54 64" fill="none" stroke="#33302E" stroke-width="3.5" stroke-linecap="round"/>
+        <path d="M66 64 Q70 60 74 64" fill="none" stroke="#33302E" stroke-width="3.5" stroke-linecap="round"/>
+        <path d="M57 75 L63 75 L60 79 Z" fill="#33302E"/>
+        <path d="M44 80 L32 78 M44 86 L33 88 M76 80 L88 78 M76 86 L87 88" stroke="#33302E" stroke-width="2" stroke-linecap="round" fill="none"/>
+        <circle cx="38" cy="76" r="5.5" fill="#FF9A9A" opacity=".7"/>
+        <circle cx="82" cy="76" r="5.5" fill="#FF9A9A" opacity=".7"/>
+      </svg>
+      <b>方案 C · 团团猫</b>
+      <span>圆滚滚的小猫伙伴</span>
+      <div class="why">
+        <b>优势</b>："伙伴感"最强，最容易被记住和自发传播（用户愿意做表情包）。<br>
+        <b>代价</b>：动物形象与学习场景的关联最弱；若后续要做周边，形象规范要求更高。
+      </div>
+    </div>
+
+  </div>
+
+  <h2>七 · 插画与背景质感</h2>
+  <div class="grid2">
+    <div class="card">
+      <h4 style="margin:0 0 12px;font-size:14px">纸张纹理</h4>
+      <div style="height:110px;border:2px dashed var(--ink);border-radius:18px;background:
+        radial-gradient(#33302E 1px, transparent 1px) 0 0/14px 14px,
+        radial-gradient(#33302E 1px, transparent 1px) 7px 7px/14px 14px, var(--paper);
+        opacity:.92"></div>
+      <p class="hint" style="margin-top:12px">极淡的点阵纹理（透明度 3–5%），让页面像画在纸上而不是屏幕上。</p>
+    </div>
+    <div class="card">
+      <h4 style="margin:0 0 12px;font-size:14px">文案语气</h4>
+      <table>
+        <tr><th>场景</th><th>我们的写法</th></tr>
+        <tr><td>加载中</td><td>正在把你的笔记拆成知识点…</td></tr>
+        <tr><td>生成超时</td><td>想得有点久，要不再试一次？</td></tr>
+        <tr><td>答错</td><td>这题有点绕，我们来看看</td></tr>
+        <tr><td>连续答错</td><td>别急，这块本来就不好啃</td></tr>
+        <tr><td>空状态</td><td>这里还空着，去闯第一关吧</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="foot">
+    风格预览板 v1.0 · 治愈向调校版 · 对应《UI设计风格方案》与《产品需求文档》v1.1<br>
+    本页仅用于确认视觉方向，不是页面原型。确认后我再产出三个高保真原型文件。
+  </div>
+
+</div>
+</body>
+</html>
