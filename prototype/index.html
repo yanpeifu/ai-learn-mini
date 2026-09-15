@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 闯关学习小程序 · UI 原型总览</title>
+<style>
+  :root{
+    /* 布局沿用原版 · 颜色/边框/按钮互动 按漫画黏土风(治愈向)调校 */
+    --paper:#FFFCF7; --paper-2:#FFFFFF; --card:#FFFFFF;
+    --ink:#33302E; --ink-soft:#8A8078;
+    --sun:#FFA85C; --sun-deep:#EE9247;
+    --sun-soft:#FFE08A; --sun-tint:#FFF3D9;
+    --red:#FF9A9A; --red-i:#C4564F; --red-soft:#FFEFEE;
+    --green:#7ED9A8; --green-i:#2A7D57; --green-soft:#E9F8EE;
+    --blue:#B9A6F5; --blue-soft:#F0EBFD;
+    --line:#F0E9E0;
+    --halftone:rgba(51,48,46,.035);
+    --bw:2.5px;
+    --hard:0 2px 0 var(--ink);
+    --soft:0 2px 0 var(--ink), 0 10px 20px rgba(51,48,46,.06);
+    --gloss:inset 0 2px 0 rgba(255,255,255,.65);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{
+    background:var(--paper);
+    background-image:radial-gradient(var(--halftone) 1.2px, transparent 1.2px);
+    background-size:14px 14px;
+    color:var(--ink);
+    font-family:"PingFang SC","HarmonyOS Sans SC","MiSans","Microsoft YaHei",sans-serif;
+    line-height:1.65;-webkit-font-smoothing:antialiased;
+    padding:40px 20px 90px;
+  }
+  .hand{font-weight:800;}
+  .wrap{max-width:1100px;margin:0 auto;}
+
+  header{text-align:center;margin-bottom:44px;}
+  .badge{display:inline-block;background:var(--sun-soft);color:var(--ink);border:var(--bw) solid var(--ink);
+    border-radius:999px;padding:6px 18px;font-weight:700;font-size:13px;
+    box-shadow:var(--hard);transform:rotate(-2deg);letter-spacing:1px;}
+  h1{font-size:32px;margin:18px 0 8px;letter-spacing:2px;font-weight:800;}
+  h1 .accent{color:var(--red-i);}
+  .sub{color:var(--ink-soft);font-size:14.5px;line-height:2;}
+  .sub b{color:var(--ink);}
+
+  section{margin-bottom:52px;}
+  .sec-title{display:flex;align-items:center;gap:12px;margin-bottom:18px;}
+  .sec-num{width:34px;height:34px;flex:none;background:var(--card);border:var(--bw) solid var(--ink);
+    border-radius:12px;display:grid;place-items:center;font-weight:800;
+    box-shadow:var(--hard);transform:rotate(-3deg);}
+  .sec-title h2{font-size:20px;letter-spacing:1px;font-weight:800;}
+
+  .card{background:var(--card);border:var(--bw) solid var(--ink);border-radius:24px;
+    box-shadow:var(--soft),var(--gloss);padding:20px;}
+
+  .entry-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:22px;}
+  a.entry{display:block;text-decoration:none;color:inherit;}
+  .entry{position:relative;overflow:hidden;min-height:230px;
+    transition:transform 140ms cubic-bezier(.34,1.56,.64,1),box-shadow 140ms ease-out;}
+  .entry:hover{transform:translateY(-3px);box-shadow:0 2px 0 var(--ink),0 16px 30px rgba(51,48,46,.12),var(--gloss);}
+  .entry .e-ic{font-size:32px;}
+  .entry h3{font-size:17px;margin:10px 0 8px;font-weight:800;}
+  .entry .e-file{display:inline-block;background:var(--ink);color:#FFF;border-radius:999px;
+    padding:2px 11px;font-size:11.5px;font-family:ui-monospace,Consolas,monospace;margin-bottom:10px;}
+  .entry p{font-size:12.5px;color:var(--ink-soft);line-height:1.95;}
+  .entry .e-count{position:absolute;top:16px;right:16px;background:var(--blue);color:var(--ink);
+    border:2px solid var(--ink);border-radius:999px;padding:1px 10px;font-weight:800;font-size:11.5px;
+    box-shadow:0 1px 0 var(--ink);transform:rotate(3deg);}
+  .entry .e-go{margin-top:12px;display:inline-block;font-weight:800;font-size:13px;color:var(--sun-deep);}
+
+  .flow{display:flex;flex-wrap:wrap;gap:0;align-items:center;justify-content:center;}
+  .fnode{border:var(--bw) solid var(--ink);border-radius:16px;background:var(--card);
+    padding:9px 15px;font-size:13px;font-weight:800;box-shadow:var(--hard);text-align:center;}
+  .fnode small{display:block;font-size:10px;color:var(--ink-soft);font-weight:400;margin-top:1px;}
+  .fnode.tab{background:var(--sun-soft);}
+  .farrow{font-size:17px;font-weight:800;color:var(--ink-soft);padding:0 9px;}
+  .floop{width:100%;text-align:center;font-size:11.5px;color:var(--ink-soft);margin-top:14px;line-height:2.1;}
+  .floop b{color:var(--red-i);}
+
+  .spec-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:22px;align-items:start;}
+  .swatches{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;}
+  .sw{border:2px solid var(--ink);border-radius:14px;overflow:hidden;box-shadow:0 1px 0 var(--ink);}
+  .sw .c{height:42px;border-bottom:2px solid var(--ink);}
+  .sw .m{padding:5px 7px;font-size:10px;font-family:ui-monospace,Consolas,monospace;color:var(--ink-soft);
+    white-space:nowrap;overflow:hidden;}
+  .sw .m b{display:block;font-size:10.5px;color:var(--ink);font-family:"PingFang SC","Microsoft YaHei",sans-serif;}
+  table{width:100%;border-collapse:collapse;font-size:12.5px;}
+  th,td{border-bottom:1.5px dashed var(--line);padding:8px 4px;text-align:left;line-height:1.7;}
+  th{font-size:11.5px;color:var(--ink-soft);font-weight:800;}
+  td b{font-family:ui-monospace,Consolas,monospace;font-size:11.5px;}
+
+  footer{text-align:center;color:var(--ink-soft);font-size:12.5px;line-height:2.1;margin-top:20px;}
+  footer .hand{font-size:15px;color:var(--ink);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="badge hand">UI 原型总览 · 漫画黏土风(治愈向)</div>
+    <h1>AI 闯关学习小程序<br><span class="accent">原型中心</span></h1>
+    <p class="sub">治愈打底 · 漫画点缀 · 反馈即灵魂 | 吉祥物:<b>颜宝 YANBAO</b> 🥚<br>
+    依据《产品需求文档》v1.1 · 原型共 <b>26 屏</b>(核心闭环 18 + 扩展功能 7 + 风格板 1)</p>
+  </header>
+
+  <!-- ================= 01 原型入口 ================= -->
+  <section>
+    <div class="sec-title"><div class="sec-num hand">1</div><h2 class="hand">原型入口 · 点击进入</h2></div>
+    <div class="entry-grid">
+      <a class="entry card" href="../产品原型/风格预览板.html">
+        <span class="e-count">风格定稿</span>
+        <span class="e-ic">🎨</span>
+        <h3>风格预览板</h3>
+        <span class="e-file">风格预览板.html</span>
+        <p>漫画黏土风治愈向调校说明 · 色彩对比度校验 · 字体层级 · 组件手感 · 吉祥物方案对比。</p>
+        <span class="e-go">查看 →</span>
+      </a>
+      <a class="entry card" href="core-flow.html">
+        <span class="e-count">18 屏</span>
+        <span class="e-ic">🧩</span>
+        <h3>核心业务流程(MVP)</h3>
+        <span class="e-file">core-flow.html</span>
+        <p>P1 首页 ×3 · P2 大纲 ×3 · P3 答题 ×8(含两弹窗)· P4 结算 ×2 · P5 我的 ×2</p>
+        <span class="e-go">查看 →</span>
+      </a>
+      <a class="entry card" href="extended.html">
+        <span class="e-count">7 屏</span>
+        <span class="e-ic">🚀</span>
+        <h3>扩展功能(V0.5+)</h3>
+        <span class="e-file">extended.html</span>
+        <p>关卡地图 · 错题本 · 今日复习 · 复盘报告 · 分享海报 ×2 · 扫码挑战落地</p>
+        <span class="e-go">查看 →</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- ================= 02 页面跳转关系 ================= -->
+  <section>
+    <div class="sec-title"><div class="sec-num hand">2</div><h2 class="hand">页面跳转关系(对应 PRD 5.5)</h2></div>
+    <div class="card" style="padding:26px 18px;">
+      <div class="flow">
+        <div class="fnode tab">🏠 首页<small>P1 · Tab</small></div>
+        <span class="farrow">→</span>
+        <div class="fnode">📋 大纲确认<small>P2</small></div>
+        <span class="farrow">→</span>
+        <div class="fnode">⚔️ 答题闯关<small>P3 · 3 关×5 题</small></div>
+        <span class="farrow">→</span>
+        <div class="fnode">🏁 结算页<small>P4</small></div>
+        <span class="farrow">→</span>
+        <div class="fnode tab">👤 我的<small>P5 · Tab</small></div>
+      </div>
+      <div class="floop">
+        P2 →返回→ P1 &nbsp;|&nbsp; P3 →中途退出(进度保留)→ P1 出现「继续学习」 &nbsp;|&nbsp; P4 →再来一次→ P1 &nbsp;|&nbsp; P5 →点击记录→ P4 <b>只读模式</b><br>
+        扩展:首页 →关卡地图 EX-1 →重刷单关 P3 &nbsp;|&nbsp; 结算 →分享海报 EX-5/6 →扫码 →挑战落地 EX-7 → P3
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 03 设计规范速览 ================= -->
+  <section>
+    <div class="sec-title"><div class="sec-num hand">3</div><h2 class="hand">设计规范速览</h2></div>
+    <div class="spec-grid">
+      <div class="card">
+        <h3 style="font-size:15px;margin-bottom:12px;">🎯 色彩系统(漫画黏土风)</h3>
+        <div class="swatches">
+          <div class="sw"><div class="c" style="background:#FFFCF7;"></div><div class="m"><b>纸张底</b>#FFFCF7</div></div>
+          <div class="sw"><div class="c" style="background:#FFA85C;"></div><div class="m"><b>暖阳橙</b>#FFA85C</div></div>
+          <div class="sw"><div class="c" style="background:#7ED9A8;"></div><div class="m"><b>薄荷绿</b>#7ED9A8</div></div>
+          <div class="sw"><div class="c" style="background:#FF9A9A;"></div><div class="m"><b>珊瑚红</b>#FF9A9A</div></div>
+          <div class="sw"><div class="c" style="background:#B9A6F5;"></div><div class="m"><b>薰衣草紫</b>#B9A6F5</div></div>
+          <div class="sw"><div class="c" style="background:#FFE08A;"></div><div class="m"><b>暖黄</b>#FFE08A</div></div>
+          <div class="sw"><div class="c" style="background:#C4564F;"></div><div class="m"><b>深红</b>#C4564F</div></div>
+          <div class="sw"><div class="c" style="background:#33302E;"></div><div class="m"><b>墨线</b>#33302E</div></div>
+        </div>
+        <p style="font-size:11.5px;color:var(--ink-soft);line-height:2;margin-top:12px;">
+          橙底/绿底配墨黑字(≥6.8:1)、深红底配白字;禁止橙底白字与珊瑚底白字。文字永不用纯黑。</p>
+      </div>
+      <div class="card">
+        <h3 style="font-size:15px;margin-bottom:12px;">📐 边框 / 投影 / 互动 Token</h3>
+        <table>
+          <tr><th>Token</th><th>值</th></tr>
+          <tr><td>描边</td><td><b>2.5px solid</b> 墨线</td></tr>
+          <tr><td>硬投影</td><td><b>0 2px 0</b> 墨线(纯垂直)</td></tr>
+          <tr><td>卡片投影</td><td>硬投影 + <b>0 10px 20px</b> rgba(.06)</td></tr>
+          <tr><td>黏土高光</td><td><b>inset 0 2px 0</b> rgba(255,255,255,.65)</td></tr>
+          <tr><td>圆角</td><td>卡 <b>24</b> / 按钮 <b>18</b> / 选项 <b>17</b> / 手机 <b>34</b></td></tr>
+          <tr><td>按压互动</td><td>translateY(<b>2px</b>) + 投影归零 + 主按钮加深</td></tr>
+          <tr><td>禁用态</td><td>opacity <b>.45</b> + 去投影</td></tr>
+          <tr><td>答错反馈</td><td>珊瑚红底 + <b>轻晃一次</b>(280ms ×2)</td></tr>
+          <tr><td>字体</td><td>系统字体链(不引字体包,主包 ≤2MB)</td></tr>
+        </table>
+      </div>
+      <div class="card">
+        <h3 style="font-size:15px;margin-bottom:12px;">🥚 颜宝使用规范(立体版)</h3>
+        <table>
+          <tr><th>表情</th><th>场景</th></tr>
+          <tr><td>得意 happy</td><td>答对讲解 / 用户头像 / 空态引导</td></tr>
+          <tr><td>思考 think</td><td>AI 生成中 / 校验提示 / 空记录占位</td></tr>
+          <tr><td>鼓励 hug</td><td>答错讲解 / 复盘建议 / 退出挽留 / 低分结算</td></tr>
+          <tr><td>庆祝 cheer</td><td>连击 / 关卡地图 / 分享海报 / 挑战邀请</td></tr>
+          <tr><td>低落 sad</td><td>生成失败 / 报错安抚</td></tr>
+        </table>
+        <p style="font-size:11.5px;color:var(--ink-soft);line-height:2;margin-top:10px;">
+          实现:SVG symbol 复用;讲解统一「颜宝老师 · AI」气泡 + 内容由 AI 生成标注(合规 M8-03)。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 04 验收对照 ================= -->
+  <section>
+    <div class="sec-title"><div class="sec-num hand">4</div><h2 class="hand">原型 ↔ PRD 验收对照</h2></div>
+    <div class="card">
+      <table>
+        <tr><th>PRD 需求</th><th>原型落点</th></tr>
+        <tr><td>F1 输入校验(20–2000 字 / 模板 / 字数)</td><td>P1-1 / P1-2 / P1-3</td></tr>
+        <tr><td>F2 大纲生成与编辑(骨架屏 / 行内编辑 / 左滑删除 / 失败重试)</td><td>P2-1 / P2-2 / P2-3</td></tr>
+        <tr><td>F4 答题反馈(对/错/连击 / 三题型 / 退出确认)</td><td>P3-1 ~ P3-7</td></tr>
+        <tr><td>F5 结算(星级 / 薄弱点 / 建议文案)</td><td>P4-1 / P4-2</td></tr>
+        <tr><td>F6 学习记录(列表 / 空状态 / 只读回看)</td><td>P5-1 / P5-2</td></tr>
+        <tr><td>L8 兜底:题目举报入口</td><td>P3-8</td></tr>
+        <tr><td>M8-03 合规:AI 内容标注 / 协议隐私入口</td><td>全局 ai-mark + P5 版本区</td></tr>
+        <tr><td>L1 关卡地图 / E2 错题本 / E3 间隔重复 / L9 复盘 / L5 海报</td><td>EX-1 ~ EX-7</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <footer>
+    <p class="hand">祝闯关愉快,一期一会 🍯</p>
+    <p>「漫画黏土风」UI 原型 · 布局原版 + 黏土风配色 | 2026-09-15 · 静态 HTML 原型,仅供设计评审与开发参照</p>
+  </footer>
+
+</div>
+</body>
+</html>
