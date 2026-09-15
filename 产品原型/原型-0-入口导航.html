@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>原型中心 · AI 闯关学习小程序</title>
+<style>
+  :root{
+    --paper:#FFFCF7; --card:#FFF; --ink:#33302E; --ink2:#8A8078; --line:#F0E9E0;
+    --orange:#FFA85C; --orange-d:#EE9247; --mint:#7ED9A8; --mint-i:#2A7D57;
+    --coral:#FF9A9A; --coral-i:#C4564F; --lav:#B9A6F5; --yellow:#FFE08A;
+    --bw:2.5px; --hard:0 2px 0 var(--ink);
+    --soft:0 2px 0 var(--ink),0 10px 20px rgba(51,48,46,.06);
+    --gloss:inset 0 2px 0 rgba(255,255,255,.65);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;padding:48px 24px 90px;background:var(--paper);color:var(--ink);
+    font-family:"PingFang SC","HarmonyOS Sans SC","MiSans","Microsoft YaHei",sans-serif;
+    line-height:1.65;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1080px;margin:0 auto}
+  h1{font-size:30px;margin:0 0 6px;letter-spacing:.5px}
+  .lead{color:var(--ink2);font-size:14px;margin:0 0 10px}
+  .tag{display:inline-block;background:var(--yellow);border:var(--bw) solid var(--ink);
+    border-radius:999px;padding:4px 14px;font-size:12px;font-weight:700;box-shadow:var(--hard);margin-bottom:38px}
+  h2{font-size:18px;margin:52px 0 6px;padding-bottom:10px;border-bottom:var(--bw) solid var(--ink)}
+  h2:first-of-type{margin-top:0}
+  .h2sub{color:var(--ink2);font-size:13px;margin:0 0 22px}
+  .card{background:var(--card);border:var(--bw) solid var(--ink);border-radius:24px;
+    box-shadow:var(--soft),var(--gloss);padding:22px}
+  .entries{display:grid;gap:20px;grid-template-columns:repeat(3,minmax(0,1fr))}
+  @media(max-width:900px){.entries{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media(max-width:600px){.entries{grid-template-columns:1fr}}
+  a.entry{
+    display:block;text-decoration:none;color:inherit;background:var(--card);
+    border:var(--bw) solid var(--ink);border-radius:24px;box-shadow:var(--soft),var(--gloss);
+    padding:20px;transition:transform 140ms cubic-bezier(.34,1.56,.64,1),box-shadow 140ms;
+  }
+  a.entry:hover{transform:translateY(-3px);box-shadow:0 5px 0 var(--ink),0 14px 24px rgba(51,48,46,.1)}
+  a.entry:active{transform:translateY(2px);box-shadow:0 0 0 var(--ink),var(--gloss)}
+  .entry .ico{width:36px;height:36px;margin-bottom:10px;fill:none;stroke:var(--ink);
+    stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .entry h3{margin:0 0 5px;font-size:16px}
+  .entry p{margin:0;font-size:12.5px;color:var(--ink2);line-height:1.6}
+  .entry .cnt{display:inline-block;margin-top:10px;font-size:11px;font-weight:700;
+    border:2px solid var(--ink);border-radius:999px;padding:1px 9px;background:var(--yellow)}
+  .entry.a .cnt{background:var(--mint)} .entry.b .cnt{background:var(--lav)} .entry.c .cnt{background:var(--coral)}
+  .entry.d .cnt{background:var(--card)}
+
+  table{width:100%;border-collapse:separate;border-spacing:0;font-size:13px}
+  th,td{padding:9px 11px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-size:11.5px;color:var(--ink2);font-weight:600}
+  .swatches{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:12px}
+  .sw{border:var(--bw) solid var(--ink);border-radius:14px;box-shadow:var(--hard);overflow:hidden}
+  .sw .f{height:50px}
+  .sw .m{padding:6px 9px;background:var(--card);border-top:var(--bw) solid var(--ink);font-size:10.5px}
+  .sw .m b{display:block;font-size:11px}
+  .sw .m code{color:var(--ink2);font-size:9.5px}
+  .flow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:12.5px}
+  .flow .n{border:2px solid var(--ink);border-radius:14px;padding:6px 12px;background:var(--card);
+    box-shadow:0 2px 0 var(--ink);font-weight:600}
+  .flow .a{color:var(--ink2)}
+  .note{background:var(--yellow);border:var(--bw) solid var(--ink);border-radius:18px;
+    box-shadow:var(--hard);padding:12px 15px;font-size:12.5px;line-height:1.7}
+  .foot{margin-top:56px;padding-top:20px;border-top:2px dashed var(--line);font-size:12px;color:var(--ink2)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>AI 闯关学习小程序 · 原型中心</h1>
+  <p class="lead">漫画黏土风（治愈向）· 吉祥物「颜宝」· 硬投影 2px · 全部原型均可双击打开</p>
+  <div class="tag">点下面的卡片进入对应原型</div>
+
+  <h2>原型入口</h2>
+  <p class="h2sub">核心流程按真实状态展开，扩展功能对应 V0.5+ 的设计点。</p>
+  <div class="entries">
+
+    <a class="entry a" href="原型-1-核心流程.html">
+      <svg class="ico" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 10h18M8 15h5"/></svg>
+      <h3>核心闭环</h3>
+      <p>首页 3 态 · 大纲 3 态 · 答题 8 态 · 结算 2 态 · 我的 2 态，覆盖全部异常与边界状态</p>
+      <span class="cnt">18 屏 · 含可点击答题演示</span>
+    </a>
+
+    <a class="entry b" href="原型-2-扩展功能.html">
+      <svg class="ico" viewBox="0 0 24 24"><path d="M4 19V8l4-4 4 4-4 4M12 12l4-4 4 4-4 4"/><circle cx="6" cy="20" r="1.5"/></svg>
+      <h3>扩展功能</h3>
+      <p>关卡地图（蜿蜒路径）· 错题本 · 今日复习 · 复盘报告 · 分享海报 · 扫码挑战落地页</p>
+      <span class="cnt">7 屏 · 地图节点可点</span>
+    </a>
+
+    <a class="entry c" href="原型-3-状态与规范.html">
+      <svg class="ico" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>
+      <h3>状态与规范</h3>
+      <p>组件全状态 · 空状态与异常 · 颜宝 8 个表情包 · 图标规范 · 色彩与令牌表</p>
+      <span class="cnt">开发交付参照</span>
+    </a>
+
+    <a class="entry d" href="风格预览板.html">
+      <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18"/></svg>
+      <h3>风格预览板</h3>
+      <p>色板与对比度校验 · 字体层级 · 按钮按压手感 · 答题反馈四态</p>
+      <span class="cnt">视觉方向确认用</span>
+    </a>
+
+    <a class="entry d" href="原型草图-低保真.html">
+      <svg class="ico" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3" stroke-dasharray="4 3"/><path d="M7 9h10M7 13h6"/></svg>
+      <h3>低保真草图</h3>
+      <p>最初的灰阶线框，只解决信息摆放与跳转关系，用于回顾布局决策</p>
+      <span class="cnt">历史版本</span>
+    </a>
+
+  </div>
+
+  <h2>页面跳转关系</h2>
+  <p class="h2sub">对应《产品需求文档》第 5.5 节。</p>
+  <div class="card">
+    <div class="flow">
+      <span class="n">首页</span><span class="a">→ 输入内容 →</span>
+      <span class="n">大纲确认</span><span class="a">→ 开始闯关 →</span>
+      <span class="n">答题页</span><span class="a">→ 三关完成 →</span>
+      <span class="n">结算页</span>
+    </div>
+    <div class="flow" style="margin-top:14px">
+      <span class="n">结算页</span><span class="a">→ 查看记录 →</span>
+      <span class="n">我的</span><span class="a">⇄ 底部 Tab ⇄</span>
+      <span class="n">首页</span>
+    </div>
+    <div class="flow" style="margin-top:14px">
+      <span class="n">答题页</span><span class="a">→ 返回 →</span>
+      <span class="n">退出确认弹窗</span><span class="a">→ 确认 →</span>
+      <span class="n">首页 · 继续学习</span>
+    </div>
+    <div class="flow" style="margin-top:14px">
+      <span class="n">结算页</span><span class="a">→ 生成海报 →</span>
+      <span class="n">分享</span><span class="a">→ 好友扫码 →</span>
+      <span class="n">挑战落地页</span><span class="a">→ 接受 →</span>
+      <span class="n">答题页</span>
+    </div>
+  </div>
+
+  <h2>设计规范速览</h2>
+  <p class="h2sub">完整规范见《UI设计风格方案.md》。</p>
+  <div class="swatches" style="margin-bottom:20px">
+    <div class="sw"><div class="f" style="background:#FFFCF7"></div><div class="m"><b>纸张底</b><code>#FFFCF7</code></div></div>
+    <div class="sw"><div class="f" style="background:#33302E"></div><div class="m"><b>墨线</b><code>#33302E</code></div></div>
+    <div class="sw"><div class="f" style="background:#FFA85C"></div><div class="m"><b>暖阳橙</b><code>#FFA85C</code></div></div>
+    <div class="sw"><div class="f" style="background:#7ED9A8"></div><div class="m"><b>薄荷绿</b><code>#7ED9A8</code></div></div>
+    <div class="sw"><div class="f" style="background:#FF9A9A"></div><div class="m"><b>珊瑚红</b><code>#FF9A9A</code></div></div>
+    <div class="sw"><div class="f" style="background:#B9A6F5"></div><div class="m"><b>薰衣草紫</b><code>#B9A6F5</code></div></div>
+    <div class="sw"><div class="f" style="background:#FFE08A"></div><div class="m"><b>暖黄</b><code>#FFE08A</code></div></div>
+  </div>
+  <div class="card">
+    <table>
+      <tr><th>令牌</th><th>值</th><th>用途</th></tr>
+      <tr><td>--bw</td><td>2.5px solid #33302E</td><td>所有描边</td></tr>
+      <tr><td>--r-card</td><td>24px</td><td>卡片、弹窗</td></tr>
+      <tr><td>--r-btn</td><td>18px</td><td>按钮、输入框、选项条</td></tr>
+      <tr><td>--hard</td><td>0 2px 0 #33302E</td><td>硬投影（已由 3px 收到 2px）</td></tr>
+      <tr><td>按压</td><td>translateY(2px) + 投影收为 0</td><td>全部可点元素</td></tr>
+      <tr><td>缓动</td><td>120ms cubic-bezier(.34,1.56,.64,1)</td><td>按压与弹入</td></tr>
+      <tr><td>字体</td><td>PingFang SC / HarmonyOS Sans SC / MiSans</td><td>中文必须用系统字体（主包限 2MB）</td></tr>
+    </table>
+  </div>
+
+  <h2>原型 ↔ PRD 验收对照</h2>
+  <p class="h2sub">每个原型屏都对应 PRD 的具体需求编号，方便逐条验收。</p>
+  <div class="card">
+    <table>
+      <tr><th>原型屏</th><th>对应需求</th><th>关键验收点</th></tr>
+      <tr><td>P1-1 / P1-2 / P1-3</td><td>F1 知识输入</td><td>20–2000 字校验、模板预填、继续学习入口</td></tr>
+      <tr><td>P2-1 / P2-2 / P2-3</td><td>F2 大纲生成</td><td>骨架屏、行内编辑、左滑删除、失败可重试</td></tr>
+      <tr><td>P3-1 ~ P3-6</td><td>F4 答题闯关</td><td>三种题型、提交前可改、答错也讲解、连击反馈</td></tr>
+      <tr><td>P3-7 / P3-8</td><td>F4 / M3-06</td><td>退出保留进度、举报 ≥3 次自动下架</td></tr>
+      <tr><td>P4-1 / P4-2</td><td>F5 通关结算</td><td>星级、知识点表现、指向性建议</td></tr>
+      <tr><td>P5-1 / P5-2</td><td>F6 学习记录</td><td>倒序分页、空状态引导、协议入口</td></tr>
+      <tr><td>EX-1</td><td>L1 关卡地图</td><td>蜿蜒路径、四种节点状态、点击可进</td></tr>
+      <tr><td>EX-2 / EX-3</td><td>E2 / E3 / L3</td><td>掌握度、下次复习时间、复习不污染统计</td></tr>
+      <tr><td>EX-4</td><td>L9 / E4</td><td>雷达图、趋势、错误模式分类、规则建议</td></tr>
+      <tr><td>EX-5 / EX-6 / EX-7</td><td>L5 / E1</td><td>成果型与挑战型海报、扫码裂变闭环</td></tr>
+    </table>
+  </div>
+
+  <div class="note" style="margin-top:24px">
+    <b>怎么用这套原型</b>：开发时先看《产品需求文档》的对应章节，再对照原型确认视觉与状态；
+    《状态与规范》里的组件状态与令牌表可直接作为实现依据。三个文件都是一行三列、响应式的，
+    可以直接投屏或截图放进作品集。
+  </div>
+
+  <div class="foot">
+    原型中心 v2.0 · 共 3 个原型文件（核心 18 屏 + 扩展 7 屏 + 规范）· 对应《产品需求文档》v1.1
+  </div>
+
+</div>
+</body>
+</html>

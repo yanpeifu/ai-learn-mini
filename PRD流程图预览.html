@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PRD 流程图预览 · AI 闯关学习小程序</title>
+<style>
+  :root { color-scheme: light dark; }
+  body {
+    margin: 0 auto; max-width: 1100px; padding: 32px 20px 80px;
+    font-family: -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
+    line-height: 1.6; color: #1f2328; background: #fff;
+  }
+  h1 { font-size: 22px; margin: 0 0 6px; }
+  .meta { color: #656d76; font-size: 13px; margin-bottom: 8px; }
+  .tip {
+    background: #f6f8fa; border: 1px solid #d0d7de; border-radius: 8px;
+    padding: 12px 16px; font-size: 13px; color: #57606a; margin-bottom: 28px;
+  }
+  .tip code { background: #eaeef2; padding: 1px 5px; border-radius: 4px; }
+  section { margin-bottom: 40px; }
+  h2 {
+    font-size: 16px; margin: 0 0 12px; padding-bottom: 6px;
+    border-bottom: 1px solid #d8dee4;
+  }
+  .diagram {
+    border: 1px solid #d0d7de; border-radius: 8px;
+    padding: 16px; overflow-x: auto; background: #fff;
+  }
+  .err {
+    color: #b42318; background: #fef3f2; border: 1px solid #fecdca;
+    border-radius: 6px; padding: 10px 14px; font-size: 13px;
+    white-space: pre-wrap; font-family: ui-monospace, Consolas, monospace;
+  }
+  .ok { color: #1a7f37; font-size: 13px; }
+  #summary { font-size: 14px; margin-bottom: 20px; }
+  @media (prefers-color-scheme: dark) {
+    body { background: #0d1117; color: #e6edf3; }
+    .diagram { background: #161b22; border-color: #30363d; }
+    .tip { background: #161b22; border-color: #30363d; color: #8b949e; }
+    .tip code { background: #21262d; }
+    h2 { border-color: #30363d; }
+  }
+</style>
+</head>
+<body>
+
+<h1>PRD 流程图预览</h1>
+<div class="meta">AI 闯关学习小程序 · 产品需求文档 v1.1 · 对应《产品需求文档.md》第 5 章</div>
+
+<div class="tip">
+  本文件是 <code>产品需求文档.md</code> 第 5 章流程图的<strong>可视化预览</strong>，双击即可在浏览器打开。
+  需要联网加载 Mermaid 库。如果内容有改动，请以 <code>产品需求文档.md</code> 为准。
+  每个图下方会显示渲染结果，若语法有问题会直接标红提示。
+</div>
+
+<div id="summary">正在渲染…</div>
+
+<section><h2>5.1 核心主流程</h2><div class="diagram" id="d1"></div></section>
+<section><h2>5.2 AI 出题与答题时序</h2><div class="diagram" id="d2"></div></section>
+<section><h2>5.3 答题页状态机</h2><div class="diagram" id="d3"></div></section>
+<section><h2>5.4 异常与降级流程</h2><div class="diagram" id="d4"></div></section>
+<section><h2>5.5 页面跳转关系</h2><div class="diagram" id="d5"></div></section>
+<section><h2>5.6 数据实体关系</h2><div class="diagram" id="d6"></div></section>
+
+<script type="module">
+import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+
+mermaid.initialize({ startOnLoad: false, theme: "default", securityLevel: "loose" });
+
+const diagrams = {
+  d1: `flowchart TD
+    A["打开小程序"] --> B["静默登录"]
+    B --> C{"存在未完成的学习?"}
+    C -->|是| D["首页显示「继续上次的学习」"]
+    C -->|否| E["首页"]
+    D --> E
+    E --> F["输入知识内容 / 选择模板"]
+    F --> G{"输入校验"}
+    G -->|不通过| H["提示具体原因"] --> F
+    G -->|通过| I["调用 AI 生成知识大纲"]
+    I --> J{"生成成功?"}
+    J -->|失败| K["提示重试"] --> I
+    J -->|成功| L["大纲确认页：编辑 / 删除知识点"]
+    L --> M["点击开始闯关"]
+    M --> N["生成关卡与题目<br/>服务端质量校验"]
+    N --> O{"生成成功?"}
+    O -->|失败| P["提示重试"] --> N
+    O -->|成功| Q["进入第 1 关第 1 题"]
+    Q --> R["选择答案"]
+    R --> S["提交作答"]
+    S --> T["即时判定 + 展示讲解"]
+    T --> U{"本关还有题?"}
+    U -->|有| Q
+    U -->|没有| V{"还有下一关?"}
+    V -->|有| W["进入下一关"] --> Q
+    V -->|没有| X["结算页<br/>正确率 / 用时 / 星级 / 薄弱点"]
+    X --> Y["保存学习记录"]
+    Y --> Z{"下一步"}
+    Z -->|再来一次| E
+    Z -->|查看记录| AA["我的 · 学习记录"]`,
+
+  d2: `sequenceDiagram
+    autonumber
+    participant U as 用户
+    participant MP as 小程序端
+    participant API as 后端 FastAPI
+    participant LLM as 大模型 DeepSeek
+    participant DB as 数据库
+
+    U->>MP: 输入知识内容
+    MP->>API: POST /api/knowledge/outline
+    API->>LLM: 请求生成知识点大纲
+    LLM-->>API: 返回 JSON 大纲
+    API->>DB: 保存 knowledge_source + knowledge_outline
+    API-->>MP: 返回大纲
+    MP-->>U: 展示可编辑的大纲
+
+    U->>MP: 编辑并确认大纲
+    MP->>API: PUT /api/knowledge/outline/{id}
+    API->>DB: 更新 outline_json
+
+    MP->>API: POST /api/knowledge/levels
+    API->>LLM: 请求生成关卡与题目
+    LLM-->>API: 返回 JSON 题目
+    API->>API: 服务端质量校验
+    alt 校验不通过
+        API->>LLM: 重新生成不合格的题目
+    end
+    API->>DB: 保存 level + question
+    API-->>MP: 返回关卡与题目
+    MP-->>U: 进入答题页
+
+    loop 每一道题
+        U->>MP: 选择答案并提交
+        MP->>API: POST /api/attempt/{id}/answer
+        API->>DB: 写入 answer_record，答错写入 mistake
+        API-->>MP: 返回判定结果 + 讲解
+        MP-->>U: 展示对错与讲解
+    end
+
+    MP->>API: POST /api/attempt/{id}/finish
+    API->>DB: 更新 attempt 结算数据
+    API-->>MP: 返回正确率 / 星级 / 薄弱知识点
+    MP-->>U: 展示结算页`,
+
+  d3: `stateDiagram-v2
+    [*] --> 未作答
+    未作答 --> 已选待提交 : 选择选项
+    已选待提交 --> 未作答 : 取消选择
+    已选待提交 --> 已提交 : 点击提交
+    已提交 --> 已判定 : 服务端返回结果
+    已判定 --> 已展示讲解 : 展开讲解
+    已展示讲解 --> 下一题 : 点击下一题
+    下一题 --> 未作答 : 本关还有题
+    下一题 --> 本关完成 : 已是最后一题
+    本关完成 --> 未作答 : 进入下一关
+    本关完成 --> 通关结算 : 三关全部完成
+    通关结算 --> [*]`,
+
+  d4: `flowchart TD
+    A["调用大模型"] --> B{"返回是否正常?"}
+    B -->|正常| C["解析 JSON"]
+    B -->|HTTP 401 / 402 / 403| D["立即中止<br/>提示密钥或余额问题"]
+    B -->|网络超时| E["延长超时后重试<br/>最多 2 次"] --> A
+    C --> F{"JSON 是否合法?"}
+    F -->|合法| G["执行业务质量校验"]
+    F -->|损坏| H["自动修复<br/>去尾逗号 / 截断补齐"]
+    H --> I{"修复成功?"}
+    I -->|是| G
+    I -->|否| J["重新调用<br/>最多 2 次"] --> A
+    J -.->|仍然失败| K["向用户提示失败<br/>提供重试按钮"]
+    G --> L{"是否存在致命质量问题?"}
+    L -->|是| J
+    L -->|仅警告| N["记录日志<br/>照常返回"]
+    L -->|无| M["返回给前端"]
+    N --> M`,
+
+  d5: `flowchart LR
+    T1["首页 P1"] -->|输入内容| P2["大纲确认页 P2"]
+    P2 -->|确认大纲| P3["答题页 P3"]
+    P2 -->|返回| T1
+    P3 -->|三关全部完成| P4["结算页 P4"]
+    P3 -->|中途退出| T1
+    P4 -->|再来一次| T1
+    P4 -->|查看记录| P5["我的 P5"]
+    T1 <-->|底部 Tab| P5
+    P5 -->|点击历史记录| P4`,
+
+  d6: `erDiagram
+    USER ||--o{ KNOWLEDGE_SOURCE : "创建"
+    USER ||--o{ ATTEMPT : "发起"
+    KNOWLEDGE_SOURCE ||--o| KNOWLEDGE_OUTLINE : "生成"
+    KNOWLEDGE_OUTLINE ||--o{ LEVEL : "包含"
+    LEVEL ||--o{ QUESTION : "包含"
+    ATTEMPT ||--o{ ANSWER_RECORD : "包含"
+    QUESTION ||--o{ ANSWER_RECORD : "被作答"
+    USER ||--o{ MISTAKE : "拥有"
+    QUESTION ||--o{ MISTAKE : "被收集"`
+};
+
+const titles = {
+  d1: "5.1 核心主流程", d2: "5.2 AI 出题与答题时序", d3: "5.3 答题页状态机",
+  d4: "5.4 异常与降级流程", d5: "5.5 页面跳转关系", d6: "5.6 数据实体关系"
+};
+
+let okCount = 0;
+const failures = [];
+
+for (const [id, code] of Object.entries(diagrams)) {
+  const box = document.getElementById(id);
+  try {
+    await mermaid.parse(code);
+    const { svg } = await mermaid.render(id + "-svg", code);
+    box.innerHTML = svg;
+    okCount++;
+  } catch (e) {
+    const msg = (e && (e.str || e.message)) ? (e.str || e.message) : String(e);
+    box.innerHTML = '<div class="err">渲染失败：' + msg.replace(/[<>&]/g, c => ({"<":"&lt;",">":"&gt;","&":"&amp;"}[c])) + "</div>";
+    failures.push(titles[id]);
+  }
+}
+
+const s = document.getElementById("summary");
+if (failures.length === 0) {
+  s.innerHTML = '<span class="ok">✓ 全部 ' + okCount + ' 张图渲染成功</span>';
+} else {
+  s.innerHTML = '<span style="color:#b42318">✗ ' + failures.length + ' 张图渲染失败：'
+    + failures.join("、") + '（成功 ' + okCount + ' 张）</span>';
+}
+</script>
+
+</body>
+</html>

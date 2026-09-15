@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <rect width="200" height="200" rx="28" fill="#FFFCF7"/>
+  <!-- 耳朵 -->
+  <path d="M60 78 L48 34 L88 56 Z" fill="#FFA85C" stroke="#33302E" stroke-width="6" stroke-linejoin="round"/>
+  <path d="M140 78 L152 34 L112 56 Z" fill="#FFA85C" stroke="#33302E" stroke-width="6" stroke-linejoin="round"/>
+  <!-- 头 -->
+  <circle cx="100" cy="114" r="60" fill="#FFA85C" stroke="#33302E" stroke-width="6"/>
+  <!-- 眼睛（弯月形，更治愈） -->
+  <path d="M76 108 Q83 100 90 108" fill="none" stroke="#33302E" stroke-width="6" stroke-linecap="round"/>
+  <path d="M110 108 Q117 100 124 108" fill="none" stroke="#33302E" stroke-width="6" stroke-linecap="round"/>
+  <!-- 鼻子 -->
+  <path d="M95 124 L105 124 L100 131 Z" fill="#33302E"/>
+  <!-- 胡须 -->
+  <path d="M74 132 L52 128 M74 142 L54 146 M126 132 L148 128 M126 142 L146 146"
+        stroke="#33302E" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+  <!-- 腮红 -->
+  <circle cx="64" cy="126" r="9.5" fill="#FF9A9A" opacity="0.72"/>
+  <circle cx="136" cy="126" r="9.5" fill="#FF9A9A" opacity="0.72"/>
+</svg>
