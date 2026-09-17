@@ -1,0 +1,15 @@
+.clay-card {
+  box-sizing: border-box;
+  border: $bw solid $ink;
+  border-radius: $r-card;
+  background: $card;
+  padding: 14px;
+}
+
+.clay-card-l1 {
+  box-shadow: $hard;
+}
+
+.clay-card-l2 {
+  box-shadow: $soft, $gloss;
+}

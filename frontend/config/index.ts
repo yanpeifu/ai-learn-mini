@@ -11,6 +11,12 @@ import prodConfig from './prod'
  * 这样原型里的 px 数值可以原样搬进样式，是 1:1 还原的前提。
  * 模板自带的 deviceRatio 已包含 375: 2，无需改动。
  */
+/**
+ * 后端地址在构建期写死（H5 运行时没有 process 对象，必须静态替换，
+ * 否则会白屏并报 `process is not defined` —— 这是视觉验收时真实踩到的坑）。
+ */
+const API_BASE = process.env.TARO_APP_API_BASE || 'http://127.0.0.1:8000'
+
 // https://taro-docs.jd.com/docs/next/config#defineconfig-辅助函数
 export default defineConfig<'webpack5'>(async (merge) => {
   const baseConfig: UserConfigExport<'webpack5'> = {
@@ -29,6 +35,7 @@ export default defineConfig<'webpack5'>(async (merge) => {
       "@tarojs/plugin-generator"
     ],
     defineConstants: {
+      'process.env.TARO_APP_API_BASE': JSON.stringify(API_BASE)
     },
     copy: {
       patterns: [

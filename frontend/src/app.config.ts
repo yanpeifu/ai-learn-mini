@@ -4,7 +4,9 @@ export default defineAppConfig({
     'pages/outline/outline',
     'pages/quiz/quiz',
     'pages/result/result',
-    'pages/mine/mine'
+    'pages/mine/mine',
+    // 组件状态预览页（对照《原型-3-状态与规范.html》做视觉验收用）——发布前删除
+    'pages/dev/components'
   ],
   window: {
     backgroundTextStyle: 'light',
@@ -16,9 +18,10 @@ export default defineAppConfig({
     navigationBarTextStyle: 'black',
     backgroundColor: '#FFFCF7'
   },
-  // TODO(M4): 原型底部 tab 是「圆角方块图标 + 文字」，微信原生 tabBar 无法 1:1 还原，
-  // M4 会切换为 custom tabBar（custom: true + src/custom-tab-bar/）。
+  // 原型底部 tab 是「圆角方块图标 + 文字」，原生 tabBar 画不出这个手感。
+  // src/custom-tab-bar/ 已经写好，在微信开发者工具里验证过一次后把 custom 改成 true 即可。
   tabBar: {
+    custom: false,
     color: '#8A8078',
     selectedColor: '#33302E',
     backgroundColor: '#FFFFFF',

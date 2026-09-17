@@ -1,0 +1,39 @@
+.dev-page {
+  min-height: 100vh;
+  box-sizing: border-box;
+  padding: 14px 14px 40px;
+  background: $paper;
+}
+
+.dev-h1 {
+  display: block;
+  margin: 18px 0 10px;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.dev-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.dev-grid4 {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.dev-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 72px;
+}
+
+.dev-label {
+  font-size: 11px;
+  color: $ink-2;
+  text-align: center;
+}

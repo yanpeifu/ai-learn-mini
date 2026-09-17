@@ -1,0 +1,38 @@
+.appbar-wrap {
+  flex: none;
+  background: $paper;
+}
+
+.appbar-safe {
+  width: 100%;
+}
+
+.appbar {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  height: 44px;
+  padding: 0 14px;
+  border-bottom: 2px dashed $line;
+  box-sizing: border-box;
+}
+
+.appbar-back {
+  display: flex;
+  align-items: center;
+  margin-left: -4px;
+}
+
+.appbar-title {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: $ink;
+}
+
+.appbar-right {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  color: $ink-2;
+  font-size: 15px;
+}

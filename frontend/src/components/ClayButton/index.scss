@@ -1,0 +1,67 @@
+.clay-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  border: $bw solid $ink;
+  border-radius: $r-btn;
+  color: $ink;
+  font-size: 14.5px;
+  font-weight: 700;
+  background: $card;
+  box-shadow: $soft, $gloss;
+  transition: transform $t-press $ease-bounce, box-shadow $t-press ease-out;
+}
+
+.clay-btn-block {
+  width: 100%;
+}
+
+.clay-btn-lg {
+  height: 52px;
+  padding: 0 16px;
+}
+
+.clay-btn-md {
+  height: 44px;
+  padding: 0 14px;
+  font-size: 14px;
+}
+
+.clay-btn-primary {
+  background: $orange;
+}
+
+.clay-btn-danger {
+  background: $danger-bg;
+  color: #fff;
+}
+
+.clay-btn-ghost {
+  border: none;
+  box-shadow: none;
+  background: transparent;
+  text-decoration: underline;
+  font-weight: 400;
+}
+
+/* 按下：元素下沉 2px、投影收为 0，模拟真的按了下去 */
+.clay-btn-hover {
+  transform: translateY(2px);
+  box-shadow: 0 0 0 $ink, $gloss;
+}
+
+.clay-btn-primary.clay-btn-hover {
+  background: $orange-d;
+}
+
+/* 禁用态：透明度 40% + 去掉硬投影 */
+.clay-btn-disabled {
+  opacity: 0.4;
+  box-shadow: none;
+}
+
+.clay-btnrow {
+  display: flex;
+  gap: 9px;
+}
