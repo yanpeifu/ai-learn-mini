@@ -99,6 +99,13 @@ class LLMBadFormatError(LLMError):
     code = "LLM_BAD_FORMAT"
 
 
+class LLMTransientError(LLMError):
+    """429 / 5xx / 网络抖动：属于可重试的临时故障。"""
+
+    retryable = True
+    code = "LLM_TRANSIENT"
+
+
 ModelT = TypeVar("ModelT")
 
 

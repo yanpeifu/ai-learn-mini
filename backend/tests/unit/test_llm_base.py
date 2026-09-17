@@ -1,6 +1,8 @@
 """LLM 门面接口测试：业务层只依赖自研接口，且该接口不引入 langchain。"""
 
+import subprocess
 import sys
+from pathlib import Path
 
 import pytest
 from app.services.llm.base import (
@@ -73,8 +75,49 @@ def test_protocol_is_implementable_without_langchain() -> None:
     assert provider.chat([ChatMessage.user("hi")]).text == "hi"
 
 
-def test_base_module_does_not_import_langchain() -> None:
-    """约束②：业务代码不 import langchain，框架只允许出现在 adapter 层。"""
-    import app.services.llm.base  # noqa: F401
+def test_facade_does_not_import_langchain() -> None:
+    """约束②：门面层（base / mock / factory 的装配入口）不 import langchain。
 
-    assert not [name for name in sys.modules if name.startswith("langchain")]
+    必须在**独立进程**里断言：同一次 pytest 运行里其它测试会加载 langchain，
+    用 sys.modules 判断会得出错误结论。
+    """
+    backend_root = Path(__file__).resolve().parents[2]
+    code = (
+        "import sys;"
+        "import app.services.llm as facade;"
+        "leaked = [n for n in sys.modules if n.startswith('langchain')];"
+        "assert not leaked, leaked;"
+        "print('clean')"
+    )
+
+    result = subprocess.run(
+        [sys.executable, "-c", code],
+        cwd=backend_root,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+
+    assert "clean" in result.stdout
+
+
+def test_langchain_is_only_imported_by_the_real_provider() -> None:
+    """反向断言：用真实供应商配置装配时，langchain 才会被加载。"""
+    code = (
+        "import sys;"
+        "from app.core.config import Settings;"
+        "from app.services.llm.factory import build_provider;"
+        "build_provider(Settings(_env_file=None, llm_provider='deepseek', llm_api_key='sk-test'));"
+        "print(len([n for n in sys.modules if n.startswith('langchain')]) > 0)"
+    )
+    backend_root = Path(__file__).resolve().parents[2]
+
+    result = subprocess.run(
+        [sys.executable, "-c", code],
+        cwd=backend_root,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+
+    assert result.stdout.strip().endswith("True")
