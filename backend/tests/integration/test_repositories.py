@@ -175,8 +175,21 @@ def test_mistake_and_report_repository(db_session: Session, user, outline) -> No
     count = report_repo.create(question_id=question.id, user_id=user.id, reason="wrong_answer")
     assert count == 1
     assert report_repo.count_pending(question.id) == 1
+    assert report_repo.count_pending_reporters(question.id) == 1
+    assert report_repo.has_reported(question.id, user.id) is True
     assert report_repo.is_flagged(question.id, threshold=3) is False
 
+    # 同一个人反复举报只算一个人，不会把题下架
     report_repo.create(question_id=question.id, user_id=user.id, reason="unclear")
     report_repo.create(question_id=question.id, user_id=user.id, reason="duplicate")
+    assert report_repo.count_pending(question.id) == 3
+    assert report_repo.is_flagged(question.id, threshold=3) is False
+
+    # 凑满 3 个不同用户才标记待复核
+    other_users = [
+        UserRepository(db_session).get_or_create_by_openid(f"reporter-{index}").id
+        for index in range(2)
+    ]
+    for reporter_id in other_users:
+        report_repo.create(question_id=question.id, user_id=reporter_id, reason="wrong_answer")
     assert report_repo.is_flagged(question.id, threshold=3) is True

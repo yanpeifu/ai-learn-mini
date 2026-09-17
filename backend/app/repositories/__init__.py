@@ -10,6 +10,7 @@ from app.repositories.entities import (
     MistakeRepository,
     QuestionReportRepository,
     QuestionRepository,
+    StatsRepository,
     UserRepository,
 )
 
@@ -23,5 +24,6 @@ __all__ = [
     "MistakeRepository",
     "QuestionReportRepository",
     "QuestionRepository",
+    "StatsRepository",
     "UserRepository",
 ]

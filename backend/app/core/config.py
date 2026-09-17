@@ -58,6 +58,8 @@ class Settings(BaseSettings):
     token_secret: str = "dev-only-secret-please-change-me-32bytes"
     token_algorithm: str = "HS256"
     token_expire_hours: int = 720
+    # 人工处理题目（下线/恢复）用的管理令牌；留空表示关闭这两个接口
+    admin_token: str | None = None
 
     # ---------- 微信 ----------
     wechat_appid: str | None = None
@@ -104,6 +106,7 @@ class Settings(BaseSettings):
     daily_outline_quota: int = 20
     daily_level_quota: int = 20
     weak_point_threshold: float = 60.0
+    report_flag_threshold: int = 3
 
     @field_validator("log_level")
     @classmethod

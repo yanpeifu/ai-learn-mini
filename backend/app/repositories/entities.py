@@ -448,5 +448,81 @@ class QuestionReportRepository(BaseRepository[QuestionReport]):
     def count_pending(self, question_id: int) -> int:
         return self.count(question_id=question_id, status="pending")
 
+    def count_pending_reporters(self, question_id: int) -> int:
+        """待处理举报的**去重人数**（同一个人反复举报只算一次）。"""
+        return int(
+            self.session.execute(
+                select(func.count(func.distinct(QuestionReport.user_id)))
+                .select_from(QuestionReport)
+                .where(
+                    QuestionReport.question_id == question_id,
+                    QuestionReport.status == "pending",
+                )
+            ).scalar_one()
+        )
+
+    def has_reported(self, question_id: int, user_id: int) -> bool:
+        return (
+            self.session.execute(
+                select(func.count())
+                .select_from(QuestionReport)
+                .where(
+                    QuestionReport.question_id == question_id,
+                    QuestionReport.user_id == user_id,
+                )
+            ).scalar_one()
+            > 0
+        )
+
     def is_flagged(self, question_id: int, *, threshold: int = 3) -> bool:
-        return self.count_pending(question_id) >= threshold
+        """≥ threshold 个**不同用户**反馈，就认为这题有问题，先下架复核。"""
+        return self.count_pending_reporters(question_id) >= threshold
+
+    def mark_all_reviewed(self, question_id: int) -> int:
+        reports = self.list(question_id=question_id, status="pending")
+        for report in reports:
+            report.status = "reviewed"
+        self.session.flush()
+        return len(reports)
+
+
+class StatsRepository:
+    """「我的」页需要的聚合查询（学习次数、答题数、平均正确率、学习天数）。"""
+
+    def __init__(self, session: Session) -> None:
+        self.session = session
+
+    def study_count(self, user_id: int) -> int:
+        return int(
+            self.session.execute(
+                select(func.count())
+                .select_from(Attempt)
+                .where(Attempt.user_id == user_id, Attempt.status == "finished")
+            ).scalar_one()
+        )
+
+    def answered_count(self, user_id: int) -> int:
+        return int(
+            self.session.execute(
+                select(func.count())
+                .select_from(AnswerRecord)
+                .where(AnswerRecord.user_id == user_id)
+            ).scalar_one()
+        )
+
+    def average_accuracy(self, user_id: int) -> float:
+        value = self.session.execute(
+            select(func.avg(Attempt.accuracy)).where(
+                Attempt.user_id == user_id, Attempt.status == "finished"
+            )
+        ).scalar_one_or_none()
+        return round(float(value), 1) if value is not None else 0.0
+
+    def study_dates(self, user_id: int) -> list[datetime]:
+        return list(
+            self.session.execute(
+                select(Attempt.started_at)
+                .where(Attempt.user_id == user_id)
+                .order_by(Attempt.started_at.desc())
+            ).scalars()
+        )
