@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import Any
 
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 
 from app.db.types import utcnow
 from app.models import (
@@ -64,6 +64,18 @@ class KnowledgeSourceRepository(BaseRepository[KnowledgeSource]):
             )
         )
 
+    def count_since(self, user_id: int, since: datetime) -> int:
+        return int(
+            self.session.execute(
+                select(func.count())
+                .select_from(KnowledgeSource)
+                .where(
+                    KnowledgeSource.user_id == user_id,
+                    KnowledgeSource.created_at >= since,
+                )
+            ).scalar_one()
+        )
+
 
 class KnowledgeOutlineRepository(BaseRepository[KnowledgeOutline]):
     model = KnowledgeOutline
@@ -104,6 +116,20 @@ class KnowledgeOutlineRepository(BaseRepository[KnowledgeOutline]):
             outline.status = "failed"
             self.session.flush()
 
+    def count_with_levels_since(self, user_id: int, since: datetime) -> int:
+        """统计「今天真正出过题的大纲数量」，用于每日出题次数限制。"""
+        return int(
+            self.session.execute(
+                select(func.count(func.distinct(Level.outline_id)))
+                .select_from(Level)
+                .join(KnowledgeOutline, KnowledgeOutline.id == Level.outline_id)
+                .where(
+                    KnowledgeOutline.user_id == user_id,
+                    KnowledgeOutline.created_at >= since,
+                )
+            ).scalar_one()
+        )
+
 
 class LevelRepository(BaseRepository[Level]):
     model = Level
@@ -132,6 +158,16 @@ class LevelRepository(BaseRepository[Level]):
 
     def count_by_outline(self, outline_id: int) -> int:
         return self.count(outline_id=outline_id)
+
+    def delete_by_outline(self, outline_id: int) -> int:
+        """重新出题前清掉旧关卡（连同题目），避免题目翻倍。"""
+        level_ids = [level.id for level in self.list_by_outline(outline_id)]
+        if not level_ids:
+            return 0
+        self.session.execute(delete(Question).where(Question.level_id.in_(level_ids)))
+        self.session.execute(delete(Level).where(Level.id.in_(level_ids)))
+        self.session.flush()
+        return len(level_ids)
 
 
 class QuestionRepository(BaseRepository[Question]):
@@ -183,6 +219,14 @@ class QuestionRepository(BaseRepository[Question]):
                 select(Question.id).where(Question.outline_id == outline_id)
             ).scalars()
         )
+
+    def set_disabled(self, question_id: int, *, disabled: bool = True) -> Question | None:
+        question = self.get(question_id)
+        if question is None:
+            return None
+        question.disabled_at = utcnow() if disabled else None
+        self.session.flush()
+        return question
 
     def replace_level_questions(
         self, level_id: int, questions: Sequence[Question]

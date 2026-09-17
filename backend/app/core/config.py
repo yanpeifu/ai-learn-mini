@@ -53,7 +53,9 @@ class Settings(BaseSettings):
     db_echo: bool = False
 
     # ---------- 鉴权 ----------
-    token_secret: str = "dev-secret-change-me"
+    # 注意：HS256 要求密钥长度 ≥32 字节，太短 PyJWT 会告警；
+    # 上线前请在 .env 里换成随机长字符串。
+    token_secret: str = "dev-only-secret-please-change-me-32bytes"
     token_algorithm: str = "HS256"
     token_expire_hours: int = 720
 

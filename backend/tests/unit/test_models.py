@@ -50,6 +50,7 @@ def test_question_columns_match_prd(db_engine) -> None:
         "explanation",
         "hint_json",
         "quality_score",
+        "disabled_at",
         "created_at",
     }
 

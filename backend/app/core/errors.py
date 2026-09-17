@@ -30,6 +30,7 @@ class ErrorCode(StrEnum):
     LLM_UNAVAILABLE = "LLM_UNAVAILABLE"
     LLM_BAD_FORMAT = "LLM_BAD_FORMAT"
     GENERATION_FAILED = "GENERATION_FAILED"
+    LOGIN_UNAVAILABLE = "LOGIN_UNAVAILABLE"
     INTERNAL_ERROR = "INTERNAL_ERROR"
 
 
@@ -44,6 +45,7 @@ _STATUS_BY_CODE: dict[str, int] = {
     ErrorCode.QUOTA_EXCEEDED: 429,
     ErrorCode.INTERNAL_ERROR: 500,
     ErrorCode.GENERATION_FAILED: 502,
+    ErrorCode.LOGIN_UNAVAILABLE: 503,
     ErrorCode.LLM_UNAVAILABLE: 503,
     ErrorCode.LLM_TIMEOUT: 504,
     ErrorCode.LLM_BAD_FORMAT: 502,
@@ -81,6 +83,7 @@ DEFAULT_MESSAGES: dict[str, str] = {
     ErrorCode.LLM_UNAVAILABLE: "服务暂时不可用，请稍后再试",
     ErrorCode.LLM_BAD_FORMAT: "这次没生成成功，再试一次？",
     ErrorCode.GENERATION_FAILED: "这次没生成成功，再试一次？",
+    ErrorCode.LOGIN_UNAVAILABLE: "登录服务暂时不可用，请稍后再试",
     ErrorCode.INTERNAL_ERROR: "服务开小差了，稍后再试试",
 }
 

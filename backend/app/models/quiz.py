@@ -54,4 +54,6 @@ class Question(Base):
     explanation: Mapped[str] = mapped_column(Text, default="")
     hint_json: Mapped[dict[str, Any] | None] = mapped_column(JSONVariant, default=None)
     quality_score: Mapped[int | None] = mapped_column(SmallInteger, default=None)
+    # 被举报 ≥3 次后自动下线（PRD M3-06）：不为空表示暂停下发
+    disabled_at: Mapped[datetime | None] = mapped_column(UTCDateTime, default=None)
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow)

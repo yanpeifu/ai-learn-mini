@@ -13,11 +13,13 @@ from app.core.config import Settings, get_settings
 from app.core.errors import register_exception_handlers
 from app.core.logging import TraceIdMiddleware, configure_logging
 from app.db.session import create_engine_from_settings, create_session_factory
+from app.services.llm.base import LLMProvider
+from app.services.llm.factory import build_provider
 
 logger = logging.getLogger("app.main")
 
 
-def create_app(settings: Settings | None = None) -> FastAPI:
+def create_app(settings: Settings | None = None, provider: LLMProvider | None = None) -> FastAPI:
     settings = settings or get_settings()
     configure_logging(settings.log_level)
 
@@ -48,6 +50,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     engine = create_engine_from_settings(settings)
     app.state.db_engine = engine
     app.state.session_factory = create_session_factory(engine)
+    # 测试里注入假 provider（零网络零成本），线上按 .env 装配真实供应商
+    app.state.llm_provider = provider or build_provider(settings)
 
     app.add_middleware(TraceIdMiddleware)
     register_exception_handlers(app)
