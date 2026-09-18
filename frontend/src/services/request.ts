@@ -30,6 +30,16 @@ export class ApiError extends Error {
   }
 }
 
+/**
+ * 401 自愈：token 失效（例如后端换了密钥、用户被清号）时，自动重新静默登录一次并重试原请求。
+ * 由 UserProvider 在挂载时注册，避免请求层直接依赖登录逻辑造成循环引用。
+ */
+let unauthorizedHandler: (() => Promise<boolean>) | null = null
+
+export function setUnauthorizedHandler(handler: () => Promise<boolean>): void {
+  unauthorizedHandler = handler
+}
+
 export interface RequestOptions {
   url: string
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE'
@@ -74,6 +84,10 @@ async function send<T>(options: RequestOptions, attempt: number): Promise<T> {
 
     if (status === 401) {
       storage.clearToken()
+      if (attempt === 0 && unauthorizedHandler) {
+        const recovered = await unauthorizedHandler()
+        if (recovered) return send<T>(options, attempt + 1)
+      }
     }
     throw new ApiError(
       body?.code || `HTTP_${status}`,

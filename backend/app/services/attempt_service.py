@@ -258,7 +258,12 @@ def build_attempt_result(
         record.question_id: record
         for record in AnswerRecordRepository(db).list_by_attempt(attempt.id)
     }
-    levels = build_public_levels_with_answers(db, attempt.outline_id, records)
+    # 只有「已作答的题」或「已结算的闯关」才返回答案与讲解：
+    # 否则用户抓包就能拿到未作答题目 的正确答案（PRD 2.5 接口设计要求第 3 条）。
+    reveal_all = attempt.status == "finished"
+    levels = build_public_levels_with_answers(
+        db, attempt.outline_id, records, reveal_all=reveal_all
+    )
     outline = KnowledgeOutlineRepository(db).get(attempt.outline_id)
     return {
         "attempt": {
@@ -275,7 +280,11 @@ def build_attempt_result(
 
 
 def build_public_levels_with_answers(
-    db: Session, outline_id: int, records: dict[int, AnswerRecord]
+    db: Session,
+    outline_id: int,
+    records: dict[int, AnswerRecord],
+    *,
+    reveal_all: bool = True,
 ) -> list[dict]:
     levels = LevelRepository(db).list_by_outline(outline_id)
     question_repo = QuestionRepository(db)
@@ -290,13 +299,15 @@ def build_public_levels_with_answers(
         for question in questions:
             record = records.get(question.id)
             item = to_public_question(question)
+            answered = record is not None
+            reveal = answered or reveal_all
             item.update(
                 {
                     "user_answer": list(record.user_answer_json) if record else [],
                     "is_correct": bool(record.is_correct) if record else None,
-                    "answered": record is not None,
-                    "correct_answer": list(question.answer_json or []),
-                    "explanation": question.explanation,
+                    "answered": answered,
+                    "correct_answer": list(question.answer_json or []) if reveal else [],
+                    "explanation": question.explanation if reveal else "",
                 }
             )
             items.append(item)

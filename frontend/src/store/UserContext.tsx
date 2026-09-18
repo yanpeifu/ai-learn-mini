@@ -4,6 +4,7 @@ import type { ReactNode } from 'react'
 import Taro from '@tarojs/taro'
 
 import { api } from '@/services/api'
+import { setUnauthorizedHandler } from '@/services/request'
 import { storage } from '@/services/storage'
 import type { UserPublic } from '@/types/api'
 
@@ -48,6 +49,11 @@ export function UserProvider({ children }: { children: ReactNode }) {
       setReady(true)
     }
   }, [])
+
+  useEffect(() => {
+    // 让请求层在 401 时能自动重新登录一次（token 失效自愈）
+    setUnauthorizedHandler(async () => Boolean(await login()))
+  }, [login])
 
   useEffect(() => {
     if (storage.getToken()) {

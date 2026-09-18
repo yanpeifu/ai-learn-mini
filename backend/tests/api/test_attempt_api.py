@@ -227,6 +227,36 @@ async def test_ongoing_attempt_supports_resume(
     assert data["next_question_id"] == levels[0]["questions"][1]["id"]
 
 
+async def test_ongoing_attempt_does_not_leak_answers(
+    auth_client: AsyncClient, provider: ScriptedProvider, db_session
+) -> None:  # noqa: ANN001
+    """未作答的题目不能返回答案与讲解，否则抓包就能作弊。"""
+    outline_id = await _prepare_outline(auth_client, provider)
+    start = await auth_client.post("/api/attempt/start", json={"outline_id": outline_id})
+    attempt_id = start.json()["data"]["attempt_id"]
+
+    detail = await auth_client.get(f"/api/attempt/{attempt_id}")
+
+    first_question = detail.json()["data"]["levels"][0]["questions"][0]
+    assert first_question["answered"] is False
+    assert first_question["correct_answer"] == []
+    assert first_question["explanation"] == ""
+
+    # 作答之后，该题才返回答案与讲解
+    question_public = start.json()["data"]["levels"][0]["questions"][0]
+    question = QuestionRepository(db_session).get(question_public["id"])
+    await auth_client.post(
+        f"/api/attempt/{attempt_id}/answer",
+        json={"question_id": question.id, "answer": ["A"], "elapsed_ms": 1000},
+    )
+    detail_after = await auth_client.get(f"/api/attempt/{attempt_id}")
+    answered = detail_after.json()["data"]["levels"][0]["questions"][0]
+
+    assert answered["answered"] is True
+    assert answered["correct_answer"] == list(question.answer_json)
+    assert answered["explanation"]
+
+
 async def test_starting_new_attempt_abandons_the_previous_one(
     auth_client: AsyncClient, provider: ScriptedProvider
 ) -> None:

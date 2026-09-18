@@ -47,6 +47,8 @@ class Settings(BaseSettings):
     api_prefix: str = "/api"
     log_level: str = "INFO"
     log_llm_calls: bool = True
+    # 本地联调时浏览器（H5 预览）需要跨域访问后端；生产环境请收紧成具体域名
+    cors_origins: str = "*"
 
     # ---------- 数据库 ----------
     database_url: str = f"sqlite:///{(BACKEND_ROOT / 'ai_learn.db').as_posix()}"

@@ -35,3 +35,10 @@ async def test_unknown_path_uses_unified_envelope(client: AsyncClient) -> None:
     body = response.json()
     assert body["code"] == "NOT_FOUND"
     assert "data" in body
+
+
+async def test_cors_headers_are_returned_for_h5_preview(client: AsyncClient) -> None:
+    """本地 H5 预览（127.0.0.1:8100）需要跨域访问后端。"""
+    response = await client.get("/api/health", headers={"Origin": "http://127.0.0.1:8100"})
+
+    assert response.headers.get("access-control-allow-origin") == "*"

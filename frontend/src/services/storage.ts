@@ -3,6 +3,7 @@ import Taro from '@tarojs/taro'
 const TOKEN_KEY = 'ai_learn_token'
 const DEVICE_KEY = 'ai_learn_device_id'
 const PROGRESS_KEY = 'ai_learn_progress'
+const PENDING_TEXT_KEY = 'ai_learn_pending_text'
 
 /** 本地存储：token 与答题进度（切后台/退出后能继续）。 */
 export const storage = {
@@ -57,6 +58,28 @@ export const storage = {
   clearProgress(): void {
     try {
       Taro.removeStorageSync(PROGRESS_KEY)
+    } catch {
+      /* ignore */
+    }
+  },
+  /** 首页 → 大纲页之间传知识文本（放 URL 里会超长，所以用本地存储中转）。 */
+  setPendingText(text: string): void {
+    try {
+      Taro.setStorageSync(PENDING_TEXT_KEY, text)
+    } catch {
+      /* ignore */
+    }
+  },
+  getPendingText(): string {
+    try {
+      return (Taro.getStorageSync(PENDING_TEXT_KEY) as string) || ''
+    } catch {
+      return ''
+    }
+  },
+  clearPendingText(): void {
+    try {
+      Taro.removeStorageSync(PENDING_TEXT_KEY)
     } catch {
       /* ignore */
     }

@@ -1,4 +1,202 @@
 .page-index {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
   min-height: 100vh;
+  box-sizing: border-box;
+  padding: 13px 14px 16px;
   background: $paper;
+}
+
+.home-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+}
+
+.home-head-text {
+  flex: 1;
+}
+
+.h1 {
+  display: block;
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1.3;
+}
+
+.cap {
+  display: block;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: $ink-2;
+}
+
+.sec {
+  display: block;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: $ink-2;
+}
+
+.input-card {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  border: $bw solid $ink;
+  border-radius: $r-card;
+  background: $card;
+  padding: 13px;
+  min-height: 118px;
+  box-shadow: $soft, $gloss;
+}
+
+.input-card-err {
+  border-color: $coral-i;
+  box-shadow: 0 2px 0 $coral-i, 0 10px 20px rgba(196, 86, 79, 0.1);
+}
+
+.input-area {
+  flex: 1;
+  width: 100%;
+  font-size: 13px;
+  line-height: 1.7;
+  color: $ink;
+}
+
+.input-placeholder {
+  color: $placeholder;
+  font-size: 13px;
+}
+
+.counter {
+  margin-top: auto;
+  font-size: 10.5px;
+  color: $ink-2;
+  text-align: right;
+}
+
+.counter-bad {
+  color: $coral-i;
+  font-weight: 700;
+}
+
+.tpl-scroll {
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.tpl {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 88px;
+  margin-right: 8px;
+  box-sizing: border-box;
+  border: $bw solid $ink;
+  border-radius: 15px;
+  background: $card;
+  padding: 10px 8px;
+  box-shadow: $hard;
+  vertical-align: top;
+}
+
+.tpl-name {
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.resume {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-sizing: border-box;
+  border: $bw solid $ink;
+  border-radius: 18px;
+  background: $yellow;
+  padding: 11px 13px;
+  box-shadow: $hard;
+}
+
+.resume-play {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  flex: none;
+  border: 2px solid $ink;
+  border-radius: 50%;
+  background: $card;
+}
+
+.resume-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.resume-title {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 700;
+}
+
+.resume-arrow {
+  font-size: 17px;
+  color: $ink-2;
+}
+
+.recent {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rec {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  box-sizing: border-box;
+  border: $bw solid $ink;
+  border-radius: 15px;
+  background: $card;
+  padding: 9px 12px;
+  box-shadow: $hard;
+}
+
+.rec-title {
+  flex: 1;
+  font-size: 12.5px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.score {
+  flex: none;
+  font-size: 12.5px;
+  font-weight: 800;
+}
+
+.score-good {
+  color: $mint-i;
+}
+
+.score-mid {
+  color: $ink-2;
+}
+
+.score-bad {
+  color: $coral-i;
+}
+
+.home-empty {
+  display: flex;
+  flex: 1;
+  min-height: 180px;
 }

@@ -96,6 +96,31 @@ export interface Settlement {
   advice: string
 }
 
+export interface ReviewQuestion extends PublicQuestion {
+  user_answer: string[]
+  is_correct: boolean | null
+  answered: boolean
+  correct_answer: string[]
+  explanation: string
+}
+
+export interface ReviewLevel extends Omit<PublicLevel, 'questions'> {
+  questions: ReviewQuestion[]
+}
+
+export interface AttemptDetail {
+  attempt: {
+    id: number
+    outline_id: number
+    title: string
+    status: string
+    started_at?: string
+    finished_at?: string | null
+  }
+  settlement: Settlement
+  levels: ReviewLevel[]
+}
+
 export interface AttemptHistoryItem {
   attempt_id: number
   outline_id: number

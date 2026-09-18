@@ -1,5 +1,6 @@
 import type {
   AnswerResult,
+  AttemptDetail,
   AttemptHistory,
   AttemptStartResult,
   LevelsGenerateResult,
@@ -84,11 +85,7 @@ export const api = {
   },
 
   attemptDetail(attemptId: number) {
-    return request<{
-      attempt: { id: number; outline_id: number; title: string; status: string }
-      settlement: Settlement
-      levels: unknown[]
-    }>({ url: `/api/attempt/${attemptId}` })
+    return request<AttemptDetail>({ url: `/api/attempt/${attemptId}` })
   },
 
   attempts(page = 1, size = 20) {
