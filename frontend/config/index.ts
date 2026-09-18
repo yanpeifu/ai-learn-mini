@@ -39,6 +39,9 @@ export default defineConfig<'webpack5'>(async (merge) => {
     },
     copy: {
       patterns: [
+        // 音效素材按「包内路径」被代码引用（见 src/services/feedback.ts），
+        // 所以必须显式拷贝进产物；把 mp3 放进 src/assets/sounds/ 即可自动生效。
+        { from: 'src/assets/sounds', to: 'dist/assets/sounds' }
       ],
       options: {
       }
