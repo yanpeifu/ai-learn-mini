@@ -17,6 +17,8 @@ class ScriptedProvider:
         self.responses = list(responses)
         self.model_id = model_id
         self.calls: list[dict[str, Any]] = []
+        #: 测试可以塞一个 Event 进来，让出题调用卡住以便验证「任务进行中」的分支
+        self.block: Any = None
 
     def chat_json(
         self,
@@ -33,6 +35,8 @@ class ScriptedProvider:
                 "text": "\n".join(m.content for m in messages),
             }
         )
+        if self.block is not None:
+            self.block.wait(timeout=5)
         if not self.responses:
             raise AssertionError("ScriptedProvider 的响应脚本已用完")
         item = self.responses.pop(0)

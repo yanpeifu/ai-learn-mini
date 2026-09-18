@@ -26,6 +26,7 @@ export default function Outline() {
   const [failedMessage, setFailedMessage] = useState<string>(COPY.outlineFailedHint)
   const [toast, setToast] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [submitStage, setSubmitStage] = useState<string>(COPY.submittingHint)
   const sourceText = useRef('')
   const touchStartX = useRef(0)
 
@@ -97,9 +98,17 @@ export default function Outline() {
 
   const onStartQuiz = async () => {
     setSubmitting(true)
+    setSubmitStage(COPY.submittingHint)
     try {
       await api.saveOutline(outlineId, points)
-      await api.generateLevels(outlineId)
+      const queued = await api.generateLevels(outlineId)
+      const task = await pollLevelsTask(queued.task_id)
+      if (task.status !== 'succeeded') {
+        throw new ApiError(
+          task.error_code || 'GENERATION_FAILED',
+          task.error_message || '出题没成功，再试一次？'
+        )
+      }
       const started = await api.startAttempt(outlineId)
       storage.clearPendingText()
       Taro.redirectTo({ url: `/pages/quiz/quiz?attemptId=${started.attempt_id}` })
@@ -108,6 +117,31 @@ export default function Outline() {
     } finally {
       setSubmitting(false)
     }
+  }
+
+  /**
+   * 轮询出题任务：每个请求都是毫秒级，所以内网穿透隧道重置、手机切后台、
+   * iOS 杀长请求都不会打断真正的出题过程（出题在后端后台线程里跑）。
+   * 轮询期间的网络抖动会被容忍（连续失败 5 次才放弃）。
+   */
+  const pollLevelsTask = async (taskId: string) => {
+    const deadline = Date.now() + 5 * 60 * 1000
+    let consecutiveFailures = 0
+    while (Date.now() < deadline) {
+      try {
+        const task = await api.levelsTask(taskId)
+        consecutiveFailures = 0
+        if (task.status === 'succeeded' || task.status === 'failed') return task
+        setSubmitStage(task.stage === 'saving' ? '正在保存关卡与题目…' : COPY.submittingHint)
+      } catch {
+        consecutiveFailures += 1
+        if (consecutiveFailures >= 5) {
+          throw new ApiError('NETWORK_ERROR', '网络打了个盹，回到大纲页再点一次「开始闯关」吧')
+        }
+      }
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+    }
+    throw new ApiError('TASK_TIMEOUT', '等了太久还没出好题，回到大纲页再试一次？')
   }
 
   const goBack = () => Taro.navigateBack()
@@ -218,7 +252,7 @@ export default function Outline() {
           <View className='dialog-pop submitting'>
             <Yanbao mood='think' size='md' />
             <Text className='gen-title'>{COPY.submitting}</Text>
-            <Text className='cap'>{COPY.submittingHint}</Text>
+            <Text className='cap'>{submitStage}</Text>
           </View>
         </View>
       ) : null}

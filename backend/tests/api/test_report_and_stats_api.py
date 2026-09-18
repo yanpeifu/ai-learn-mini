@@ -5,6 +5,7 @@ from app.main import create_app
 from app.repositories import QuestionReportRepository, QuestionRepository, UserRepository
 from httpx import ASGITransport, AsyncClient
 from tests.fakes import ScriptedProvider, make_question_set, outline_payload
+from tests.task_utils import enqueue_levels
 
 VALID_TEXT = "存款准备金率是商业银行按规定向央行缴存的准备金占其存款总额的比例，提高准备金率会减少可放贷资金。"
 
@@ -14,7 +15,8 @@ async def _prepare_attempt(auth_client: AsyncClient, provider: ScriptedProvider)
     created = await auth_client.post("/api/knowledge/outline", json={"raw_text": VALID_TEXT})
     outline_id = created.json()["data"]["outline_id"]
     provider.responses.append(make_question_set())
-    await auth_client.post("/api/knowledge/levels", json={"outline_id": outline_id})
+    task = await enqueue_levels(auth_client, outline_id)
+    assert task["status"] == "succeeded", task
     start = await auth_client.post("/api/attempt/start", json={"outline_id": outline_id})
     return start.json()["data"]
 

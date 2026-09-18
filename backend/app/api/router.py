@@ -2,12 +2,13 @@
 
 from fastapi import APIRouter
 
-from app.api import attempt, auth, health, knowledge, question, templates, user
+from app.api import attempt, auth, generation, health, knowledge, question, templates, user
 
 api_router = APIRouter()
 api_router.include_router(health.router)
 api_router.include_router(auth.router)
 api_router.include_router(knowledge.router)
+api_router.include_router(generation.router)
 api_router.include_router(attempt.router)
 api_router.include_router(question.router)
 api_router.include_router(user.router)

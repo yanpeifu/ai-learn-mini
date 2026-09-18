@@ -8,6 +8,7 @@ from app.main import create_app
 from app.services.llm.base import LLMBadFormatError
 from httpx import ASGITransport, AsyncClient
 from tests.fakes import ScriptedProvider, make_question_set, outline_payload
+from tests.task_utils import enqueue_levels, wait_for_task
 
 VALID_TEXT = "存款准备金率是商业银行按规定向央行缴存的准备金占其存款总额的比例，提高准备金率会减少可放贷资金。"
 
@@ -120,13 +121,16 @@ async def test_generate_levels_returns_15_questions_without_answers(
     outline_id = created.json()["data"]["outline_id"]
     provider.responses.append(make_question_set())
 
-    response = await auth_client.post("/api/knowledge/levels", json={"outline_id": outline_id})
+    queued = await auth_client.post("/api/knowledge/levels", json={"outline_id": outline_id})
+    task = await wait_for_task(auth_client, queued.json()["data"]["task_id"])
 
-    assert response.status_code == 200
-    levels = response.json()["data"]["levels"]
+    assert queued.status_code == 200
+    assert queued.json()["data"]["status"] == "running"  # 立即返回，不阻塞 40 秒
+    assert task["status"] == "succeeded"
+    levels = task["result"]["levels"]
     assert [level["seq"] for level in levels] == [1, 2, 3]
     assert [level["question_count"] for level in levels] == [5, 5, 5]
-    raw = json.dumps(response.json(), ensure_ascii=False)
+    raw = json.dumps(task["result"], ensure_ascii=False)
     assert "answer" not in raw
     assert "explanation" not in raw
     assert "正确答案" not in raw
@@ -140,14 +144,56 @@ async def test_regenerating_levels_does_not_duplicate_questions(
     outline_id = created.json()["data"]["outline_id"]
     provider.responses.extend([make_question_set(), make_question_set()])
 
-    await auth_client.post("/api/knowledge/levels", json={"outline_id": outline_id})
-    second = await auth_client.post("/api/knowledge/levels", json={"outline_id": outline_id})
+    first_task = await enqueue_levels(auth_client, outline_id)
+    second_task = await enqueue_levels(auth_client, outline_id)
     detail = await auth_client.get(f"/api/knowledge/outline/{outline_id}")
 
-    assert second.status_code == 200
+    assert first_task["status"] == "succeeded"
+    assert second_task["status"] == "succeeded"
     levels = detail.json()["data"]["levels"]
     assert len(levels) == 3
     assert sum(level["question_count"] for level in levels) == 15
+
+
+async def test_submitting_twice_while_running_reuses_the_same_task(
+    auth_client: AsyncClient, provider: ScriptedProvider
+) -> None:
+    """重复点「开始闯关」不会重复扣费：进行中的任务会被复用。"""
+    import threading
+
+    provider.responses.append(outline_payload())
+    created = await auth_client.post("/api/knowledge/outline", json={"raw_text": VALID_TEXT})
+    outline_id = created.json()["data"]["outline_id"]
+    provider.responses.append(make_question_set())
+    # 让出题卡住一会儿，模拟「任务还在跑」的时间窗
+    blocked = threading.Event()
+    provider.block = blocked
+
+    first = await auth_client.post("/api/knowledge/levels", json={"outline_id": outline_id})
+    second = await auth_client.post("/api/knowledge/levels", json={"outline_id": outline_id})
+
+    assert first.json()["data"]["task_id"] == second.json()["data"]["task_id"]
+    assert second.json()["data"]["reused"] is True
+    blocked.set()  # 放行后台任务
+    task = await wait_for_task(auth_client, first.json()["data"]["task_id"])
+    assert task["status"] == "succeeded"
+
+
+async def test_task_detail_requires_owner(
+    auth_client: AsyncClient, client: AsyncClient, provider: ScriptedProvider
+) -> None:
+    provider.responses.append(outline_payload())
+    created = await auth_client.post("/api/knowledge/outline", json={"raw_text": VALID_TEXT})
+    outline_id = created.json()["data"]["outline_id"]
+    provider.responses.append(make_question_set())
+    queued = await auth_client.post("/api/knowledge/levels", json={"outline_id": outline_id})
+    task_id = queued.json()["data"]["task_id"]
+    login = await client.post("/api/auth/login", json={"code": "dev_task_snooper"})
+    headers = {"Authorization": f"Bearer {login.json()['data']['token']}"}
+
+    response = await client.get(f"/api/generation/tasks/{task_id}", headers=headers)
+
+    assert response.status_code == 404
 
 
 async def test_levels_for_unknown_outline_returns_404(auth_client: AsyncClient) -> None:

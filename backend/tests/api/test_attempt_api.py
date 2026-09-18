@@ -4,6 +4,7 @@ from app.repositories import QuestionRepository
 from app.services.llm.base import LLMBadFormatError
 from httpx import AsyncClient
 from tests.fakes import ScriptedProvider, make_question_set, outline_payload
+from tests.task_utils import enqueue_levels, wait_for_task
 
 VALID_TEXT = "存款准备金率是商业银行按规定向央行缴存的准备金占其存款总额的比例，提高准备金率会减少可放贷资金。"
 
@@ -13,8 +14,8 @@ async def _prepare_outline(auth_client: AsyncClient, provider: ScriptedProvider)
     created = await auth_client.post("/api/knowledge/outline", json={"raw_text": VALID_TEXT})
     outline_id = created.json()["data"]["outline_id"]
     provider.responses.append(make_question_set())
-    levels = await auth_client.post("/api/knowledge/levels", json={"outline_id": outline_id})
-    assert levels.status_code == 200, levels.text
+    task = await enqueue_levels(auth_client, outline_id)
+    assert task["status"] == "succeeded", task
     return outline_id
 
 
@@ -299,8 +300,10 @@ async def test_llm_failure_during_levels_does_not_create_attempt(
     outline_id = created.json()["data"]["outline_id"]
     provider.responses.extend([LLMBadFormatError("坏 JSON")] * 3)
 
-    levels = await auth_client.post("/api/knowledge/levels", json={"outline_id": outline_id})
+    queued = await auth_client.post("/api/knowledge/levels", json={"outline_id": outline_id})
+    task = await wait_for_task(auth_client, queued.json()["data"]["task_id"])
     start = await auth_client.post("/api/attempt/start", json={"outline_id": outline_id})
 
-    assert levels.status_code == 502
+    assert task["status"] == "failed"
+    assert task["error_code"] == "LLM_BAD_FORMAT"
     assert start.status_code == 502  # 没有题目就不允许开始闯关

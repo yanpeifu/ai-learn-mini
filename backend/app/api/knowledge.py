@@ -2,29 +2,21 @@
 
 from __future__ import annotations
 
-from collections import Counter
-
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 from sqlalchemy.orm import Session
 
 from app.api.deps import AppSettings, CurrentUser, DbSession, LlmProvider
 from app.core.errors import AppError, ErrorCode
 from app.core.response import ok
 from app.models import KnowledgeOutline
-from app.repositories import (
-    KnowledgeOutlineRepository,
-    KnowledgeSourceRepository,
-    LevelRepository,
-    QuestionRepository,
-)
-from app.schemas.generation import GeneratedQuestionSet, OutlinePoint
+from app.repositories import KnowledgeOutlineRepository, KnowledgeSourceRepository
 from app.schemas.knowledge import (
     LevelsGenerateRequest,
     OutlineGenerateRequest,
     OutlineSaveRequest,
 )
+from app.services.level_service import start_levels_task
 from app.services.outline_service import generate_outline
-from app.services.question_service import generate_question_set
 from app.services.quota import ensure_levels_quota, ensure_outline_quota
 from app.services.serializers import build_public_levels
 
@@ -100,65 +92,33 @@ def save_outline(
 @router.post("/knowledge/levels")
 def create_levels(
     payload: LevelsGenerateRequest,
+    request: Request,
     db: DbSession,
     user: CurrentUser,
     settings: AppSettings,
     provider: LlmProvider,
 ) -> dict:
-    """生成 3 关 × 5 题并落库；下发的题目不含答案。"""
+    """提交出题任务，**立即返回 task_id**（出题在后台跑，前端轮询进度）。
+
+    这样长耗时不再受隧道重置、90 秒请求超时、手机切后台的影响；
+    同一个大纲重复提交会复用同一个任务，不会重复扣费。
+    """
     outline = _get_owned_outline(db, payload.outline_id, user.id)
     ensure_levels_quota(db, user.id, settings)
 
-    points = [OutlinePoint(**item) for item in outline.outline_json]
-    result = generate_question_set(provider, points, settings)
-    _persist_levels(db, outline, result.payload)
-
+    task_id, reused = start_levels_task(
+        registry=request.app.state.task_registry,
+        session_factory=request.app.state.session_factory,
+        provider=provider,
+        settings=settings,
+        outline_id=outline.id,
+        user_id=user.id,
+    )
     return ok(
         {
+            "task_id": task_id,
+            "status": "running",
+            "reused": reused,
             "outline_id": outline.id,
-            "levels": build_public_levels(db, outline.id),
-            "stats": {
-                "regenerated": result.regenerated,
-                "dropped": result.dropped,
-                "backfilled": result.backfilled,
-                "warnings": len(result.issues),
-            },
         }
     )
-
-
-def _persist_levels(db: Session, outline: KnowledgeOutline, question_set: GeneratedQuestionSet) -> None:
-    """把关卡与题目写入数据库（重新出题时先清掉旧的，避免题目翻倍）。"""
-    level_repo = LevelRepository(db)
-    question_repo = QuestionRepository(db)
-    level_repo.delete_by_outline(outline.id)
-
-    point_titles = {point["id"]: point["title"] for point in outline.outline_json}
-    grouped: dict[int, list] = {}
-    for question in question_set.questions:
-        grouped.setdefault(question.level_seq or 1, []).append(question)
-
-    for seq in sorted(grouped):
-        questions = grouped[seq]
-        dominant_kp = Counter(q.knowledge_point_id for q in questions).most_common(1)[0][0]
-        kp_title = point_titles.get(dominant_kp, dominant_kp)
-        level = level_repo.create(
-            outline_id=outline.id,
-            seq=seq,
-            title=f"第 {seq} 关 · {kp_title}"[:64],
-            knowledge_point=kp_title[:128],
-            question_count=len(questions),
-        )
-        for index, question in enumerate(questions, 1):
-            question_repo.create(
-                level_id=level.id,
-                outline_id=outline.id,
-                seq=index,
-                type=question.type,
-                difficulty=question.difficulty,
-                stem=question.stem,
-                options=[option.model_dump() for option in question.options],
-                answer=list(question.answer),
-                explanation=question.explanation,
-                hint=question.hint.model_dump() if question.hint else None,
-            )

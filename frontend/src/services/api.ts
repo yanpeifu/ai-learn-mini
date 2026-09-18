@@ -3,7 +3,8 @@ import type {
   AttemptDetail,
   AttemptHistory,
   AttemptStartResult,
-  LevelsGenerateResult,
+  LevelsTask,
+  LevelsTaskEnqueue,
   OngoingAttempt,
   OutlineDetail,
   OutlineGenerateResult,
@@ -56,12 +57,17 @@ export const api = {
   },
 
   generateLevels(outlineId: number) {
-    return request<LevelsGenerateResult>({
+    return request<LevelsTaskEnqueue>({
       url: '/api/knowledge/levels',
       method: 'POST',
       data: { outline_id: outlineId },
       timeout: LEVELS_TIMEOUT
     })
+  },
+
+  /** 查询出题任务进度（毫秒级返回，长耗时在后台跑） */
+  levelsTask(taskId: string) {
+    return request<LevelsTask>({ url: `/api/generation/tasks/${taskId}`, timeout: 8000 })
   },
 
   startAttempt(outlineId: number) {

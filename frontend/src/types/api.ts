@@ -51,10 +51,27 @@ export interface OutlineDetail extends OutlineGenerateResult {
   levels: PublicLevel[]
 }
 
-export interface LevelsGenerateResult {
+/** 出题改成「后台任务 + 前端轮询」，所以接口先返回任务号，再轮询进度 */
+export interface LevelsTaskEnqueue {
+  task_id: string
+  status: string
+  reused: boolean
   outline_id: number
-  levels: PublicLevel[]
-  stats: { regenerated: number; dropped: number; backfilled: number; warnings: number }
+}
+
+export type LevelsTaskStatus = 'queued' | 'running' | 'succeeded' | 'failed'
+
+export interface LevelsTask {
+  task_id: string
+  status: LevelsTaskStatus
+  stage: string
+  error_code?: string | null
+  error_message?: string | null
+  result?: {
+    outline_id: number
+    levels: PublicLevel[]
+    stats: { regenerated: number; dropped: number; backfilled: number; warnings: number }
+  } | null
 }
 
 export interface AttemptStartResult {
