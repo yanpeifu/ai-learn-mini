@@ -33,11 +33,20 @@ def resolve_openid(code: str | None, settings: Settings) -> str:
 
     if is_dev_code(code):
         if not settings.dev_login_enabled:
+            logger.warning(
+                "收到 dev_ 假登录请求，但 DEV_LOGIN_ENABLED 未开启",
+                extra={"hint": "在启动后端前设置 $env:DEV_LOGIN_ENABLED='true'"},
+            )
             raise AppError(ErrorCode.LOGIN_UNAVAILABLE)
         return dev_openid(code)
 
     if not settings.wechat_appid or not settings.wechat_secret:
-        logger.warning("wechat appid/secret 未配置，真实登录不可用")
+        logger.warning(
+            "收到真实登录 code，但 WECHAT_APPID / WECHAT_SECRET 未配置",
+            extra={
+                "hint": "要么在 .env 里配置 AppID/Secret，要么把前端 TARO_APP_DEV_LOGIN 设为 true 走假登录"
+            },
+        )
         raise AppError(ErrorCode.LOGIN_UNAVAILABLE)
 
     try:

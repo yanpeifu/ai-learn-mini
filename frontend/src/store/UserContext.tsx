@@ -20,12 +20,19 @@ const UserContext = createContext<UserContextValue>({
   login: async () => null
 })
 
+/** 是否强制使用本地假登录（还没有 AppID 时用它联调，见 .env.development）。 */
+const FORCE_DEV_LOGIN = process.env.TARO_APP_DEV_LOGIN === 'true'
+
 async function resolveLoginCode(): Promise<string> {
-  try {
-    const result = await Taro.login()
-    if (result?.code) return result.code
-  } catch {
-    /* H5 或未配置 AppID 时会失败，走下面的 DEV 兜底 */
+  // 注意：开发者工具模拟器里 wx.login() 会成功返回真 code，
+  // 但后端没有 AppID/Secret 就无法换 openid，所以本地联调要显式走假登录。
+  if (!FORCE_DEV_LOGIN) {
+    try {
+      const result = await Taro.login()
+      if (result?.code) return result.code
+    } catch {
+      /* H5 或未配置 AppID 时会失败，走下面的 DEV 兜底 */
+    }
   }
   return storage.getDeviceId()
 }
