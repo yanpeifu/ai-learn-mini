@@ -10,11 +10,16 @@ import Taro from '@tarojs/taro'
  */
 export type SoundName = 'right' | 'wrong' | 'combo' | 'finish'
 
+/**
+ * 音效文件目前是项目内脚本合成的 wav（原创，无版权问题）：
+ * `backend/scripts/generate_sounds.py`。
+ * 若以后换成 mp3，把这里的扩展名改掉即可（其余逻辑不用动）。
+ */
 const SOUND_FILES: Record<SoundName, string> = {
-  right: '/assets/sounds/right.mp3',
-  wrong: '/assets/sounds/wrong.mp3',
-  combo: '/assets/sounds/combo.mp3',
-  finish: '/assets/sounds/finish.mp3'
+  right: '/assets/sounds/right.wav',
+  wrong: '/assets/sounds/wrong.wav',
+  combo: '/assets/sounds/combo.wav',
+  finish: '/assets/sounds/finish.wav'
 }
 
 const contexts: Partial<Record<SoundName, Taro.InnerAudioContext>> = {}
