@@ -96,8 +96,8 @@ def register_exception_handlers(app: FastAPI) -> None:
     @app.exception_handler(AppError)
     async def _app_error_handler(request: Request, exc: AppError) -> JSONResponse:
         logger.warning(
-            "app_error",
-            extra={"code": exc.code, "path": request.url.path, "detail": str(exc)},
+            f"业务处理失败：{request.method} {request.url.path} → {exc.code}",
+            extra={"code": exc.code, "path": request.url.path, "reason": exc.message},
         )
         return JSONResponse(status_code=exc.status_code, content=error_envelope(exc))
 
@@ -106,8 +106,8 @@ def register_exception_handlers(app: FastAPI) -> None:
         request: Request, exc: RequestValidationError
     ) -> JSONResponse:
         logger.info(
-            "validation_error",
-            extra={"path": request.url.path, "errors": exc.errors()},
+            f"请求参数不符合要求：{request.method} {request.url.path}（已提示用户检查输入）",
+            extra={"path": request.url.path, "codes": ["INVALID_INPUT"]},
         )
         return JSONResponse(
             status_code=400,
@@ -133,7 +133,11 @@ def register_exception_handlers(app: FastAPI) -> None:
 
     @app.exception_handler(Exception)
     async def _unhandled_handler(request: Request, exc: Exception) -> JSONResponse:
-        logger.exception("unhandled_error", extra={"path": request.url.path})
+        logger.exception(
+            f"服务端未预期的错误：{request.method} {request.url.path}"
+            "（已给用户友好提示，技术细节见下方堆栈）",
+            extra={"path": request.url.path, "code": "INTERNAL_ERROR"},
+        )
         return JSONResponse(
             status_code=500, content=fail(ErrorCode.INTERNAL_ERROR, DEFAULT_MESSAGES[ErrorCode.INTERNAL_ERROR])
         )

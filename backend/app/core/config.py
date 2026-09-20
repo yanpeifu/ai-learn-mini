@@ -46,6 +46,8 @@ class Settings(BaseSettings):
     debug: bool = True
     api_prefix: str = "/api"
     log_level: str = "INFO"
+    # 日志格式：text = 中文可读（默认，给人看）；json = 机器可读（给日志平台）
+    log_format: str = "text"
     log_llm_calls: bool = True
     # 本地联调时浏览器（H5 预览）需要跨域访问后端；生产环境请收紧成具体域名
     cors_origins: str = "*"

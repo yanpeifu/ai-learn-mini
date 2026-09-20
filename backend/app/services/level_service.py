@@ -143,11 +143,16 @@ def _run_levels_task(
                 },
             },
         )
-        logger.info("levels task succeeded", extra={"task_id": task_id, "outline_id": outline_id})
+        logger.info(
+            f"出题任务完成：生成 {len(levels)} 个关卡、共 "
+            f"{sum(level['question_count'] for level in levels)} 道题（题目已保存）",
+            extra={"task_id": task_id, "outline_id": outline_id, "stage": "done"},
+        )
     except AppError as exc:
         db.rollback()
         logger.warning(
-            "levels task failed", extra={"task_id": task_id, "code": exc.code, "detail": exc.message}
+            f"出题任务失败：{exc.message}（用户会看到对应提示，可以让 TA 重试）",
+            extra={"task_id": task_id, "code": exc.code, "stage": "failed"},
         )
         registry.update(
             task_id,
@@ -158,7 +163,10 @@ def _run_levels_task(
         )
     except Exception as exc:  # noqa: BLE001 - 后台任务必须兜住所有异常，不能静默死掉
         db.rollback()
-        logger.exception("levels task crashed", extra={"task_id": task_id})
+        logger.exception(
+            "出题任务异常中断（错误已被兜住，服务继续正常运行）",
+            extra={"task_id": task_id, "code": "INTERNAL_ERROR"},
+        )
         registry.update(
             task_id,
             status=STATUS_FAILED,

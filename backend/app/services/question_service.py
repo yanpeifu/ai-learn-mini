@@ -81,7 +81,7 @@ def generate_question_set(
     remaining_fatal = fatal_issues(final_issues)
     if remaining_fatal:
         logger.warning(
-            "question set still invalid after repair",
+            "重试后题目仍不达标，本次出题终止（不会把不合格的题交给用户）",
             extra={
                 "codes": sorted({issue.code for issue in remaining_fatal}),
                 "regenerated": regenerated,
@@ -157,7 +157,7 @@ def _repair_defects(
             # 单题重生成失败不能拖垮整份生成（PRD：丢弃该题，从其它题补足）
             if exc.code == ErrorCode.LLM_UNAVAILABLE:
                 raise
-            logger.info("repair call failed, will drop defective questions")
+            logger.warning("重写不合格题目的调用失败了，改为直接丢弃这些题、从其它题补足")
             return payload, regenerated
 
         payload = merge_questions(
@@ -185,7 +185,7 @@ def _drop_defective(
         return payload, 0
     kept = [q for index, q in enumerate(payload.questions) if index not in bad_indices]
     logger.info(
-        "dropped defective questions",
+        f"质量校验：丢弃 {len(bad_indices)} 道不合格的题目，保留 {len(kept)} 道",
         extra={"dropped": len(bad_indices), "kept": len(kept)},
     )
     return payload.model_copy(update={"questions": kept}), len(bad_indices)
@@ -342,7 +342,7 @@ def _free_slots_for_uncovered_points(
         counts[victim.knowledge_point_id] = counts.get(victim.knowledge_point_id, 1) - 1
         freed += 1
         logger.info(
-            "freed a slot for uncovered knowledge point",
+            f"有知识点没被题目覆盖，先空出一个位置给「{point.title}」补题",
             extra={"knowledge_point": point.id, "victim_question": victim.id},
         )
     return payload.model_copy(update={"questions": questions}), freed

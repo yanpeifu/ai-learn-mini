@@ -23,12 +23,12 @@ logger = logging.getLogger("app.main")
 
 def create_app(settings: Settings | None = None, provider: LLMProvider | None = None) -> FastAPI:
     settings = settings or get_settings()
-    configure_logging(settings.log_level)
+    configure_logging(settings.log_level, settings.log_format)
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         logger.info(
-            "app starting",
+            "服务已启动，可以开始使用了",
             extra={
                 "env": settings.env,
                 "version": settings.app_version,
@@ -40,7 +40,7 @@ def create_app(settings: Settings | None = None, provider: LLMProvider | None = 
         finally:
             engine = app.state.db_engine
             engine.dispose()
-            logger.info("app stopped", extra={"env": settings.env})
+            logger.info("服务已停止", extra={"env": settings.env})
 
     app = FastAPI(
         title=settings.app_name,

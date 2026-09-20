@@ -67,14 +67,19 @@ def invoke_json(
         except LLMUnavailableError as exc:
             # 密钥、余额、权限问题：重试没有意义，立刻中止
             logger.warning(
-                "llm unavailable, abort immediately",
-                extra={"purpose": purpose, "attempt": attempt, "reason": str(exc)},
+                "大模型不可用，立即停止重试（请检查密钥或余额）",
+                extra={
+                    "purpose": purpose,
+                    "attempt": attempt,
+                    "code": "LLM_UNAVAILABLE",
+                    "reason": str(exc),
+                },
             )
             raise AppError(ErrorCode.LLM_UNAVAILABLE) from exc
         except (LLMTimeoutError, LLMBadFormatError, LLMTransientError) as exc:
             last_error = exc
             logger.info(
-                "llm call retryable failure",
+                f"这次没成功，正在自动重试（第 {attempt} 次）",
                 extra={
                     "purpose": purpose,
                     "attempt": attempt,

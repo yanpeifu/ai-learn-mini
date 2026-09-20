@@ -4,7 +4,7 @@ import json
 import logging
 
 import pytest
-from app.core.logging import JsonFormatter, log_llm_call
+from app.core.logging import HumanFormatter, JsonFormatter, configure_logging, log_llm_call
 
 
 def _format(record: logging.LogRecord) -> dict:
@@ -50,3 +50,55 @@ def test_log_llm_call_records_cost_related_fields(caplog: pytest.LogCaptureFixtu
     assert record.latency_ms == 1234
     assert record.total_tokens == 4100
     assert record.estimated_cost == 0.015
+
+
+def test_human_formatter_outputs_readable_chinese() -> None:
+    """默认格式是中文可读文本：级别、字段名、用途、错误码都翻译成中文。"""
+    record = logging.LogRecord(
+        name="app.llm",
+        level=logging.INFO,
+        pathname=__file__,
+        lineno=1,
+        msg="大模型调用成功（生成关卡与题目）",
+        args=(),
+        exc_info=None,
+    )
+    record.purpose = "levels"
+    record.latency_ms = 41600
+    record.estimated_cost = 0.0519
+
+    line = HumanFormatter().format(record)
+
+    assert "[信息]" in line
+    assert "大模型调用成功" in line
+    assert "用途=生成关卡与题目" in line
+    assert "耗时(毫秒)=41600" in line
+    assert "预计花费(元)=0.0519" in line
+
+
+def test_human_formatter_translates_codes_and_levels() -> None:
+    record = logging.LogRecord(
+        name="app.error",
+        level=logging.WARNING,
+        pathname=__file__,
+        lineno=1,
+        msg="业务处理失败",
+        args=(),
+        exc_info=None,
+    )
+    record.code = "LLM_UNAVAILABLE"
+    record.error_type = "LLMTimeoutError"
+
+    line = HumanFormatter().format(record)
+
+    assert "[警告]" in line
+    assert "错误码=模型服务不可用（通常是密钥或余额问题）" in line
+    assert "错误类型=模型响应太慢" in line
+
+
+def test_configure_logging_defaults_to_chinese_human_format() -> None:
+    configure_logging("WARNING")
+
+    formatter = logging.getLogger().handlers[0].formatter
+
+    assert isinstance(formatter, HumanFormatter)
