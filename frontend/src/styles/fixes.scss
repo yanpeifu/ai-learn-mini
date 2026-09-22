@@ -12,8 +12,14 @@
   flex-direction: column;
 }
 
+/*
+ * 注意：这里必须同时给 box-sizing: border-box。
+ * EmptyState 自身的 .empty-plain 有 16px 左右内边距，若只写 width:100%，
+ * 元素实际宽度会变成「父宽 + 32px」并向右溢出，导致内容整体右偏（实测偏右 8.5px）。
+ */
 .empty.empty {
   width: 100%;
+  box-sizing: border-box;
 }
 
 /* Bug 3：学习记录改成可点击的 Navigator 后，补上按压反馈与「可点击」的视觉提示 */
