@@ -34,3 +34,8 @@ miniprogram_npm/
 # 系统
 .DS_Store
 Thumbs.db
+
+# 微信开发者工具的工程文件只应存在于 frontend/ 下；
+# 根目录这两份是「误把仓库根目录当成小程序项目」时生成的，不入库
+/project.config.json
+/project.private.config.json
