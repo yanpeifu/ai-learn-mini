@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import { ClayButton, TipBar, Yanbao } from '@/components'
 import { starSvg } from '@/assets/star'
 import { COPY } from '@/constants/copy'
+import { useNavMetrics } from '@/hooks/useNavMetrics'
 import { api } from '@/services/api'
 import { ApiError } from '@/services/request'
 import { svgToDataUri } from '@/utils/svg'
@@ -24,6 +25,7 @@ function formatDuration(ms: number): string {
 
 /** P4 通关结算：三星通关（P4-1）/ 低分鼓励（P4-2），也是学习记录的只读回看页。 */
 export default function Result() {
+  const { safeTop, rightGap } = useNavMetrics()
   const [settlement, setSettlement] = useState<Settlement | null>(null)
   const [title, setTitle] = useState('')
   const [litStars, setLitStars] = useState(0)
@@ -58,7 +60,7 @@ export default function Result() {
 
   if (error) {
     return (
-      <View className='page-result result-center'>
+      <View className='page-result result-center' style={{ paddingTop: `${safeTop}px` }}>
         <Yanbao mood='sad' size='lg' />
         <Text className='result-error'>{error}</Text>
         <ClayButton variant='primary' onClick={() => Taro.switchTab({ url: '/pages/index/index' })}>
@@ -70,7 +72,7 @@ export default function Result() {
 
   if (!settlement) {
     return (
-      <View className='page-result result-center'>
+      <View className='page-result result-center' style={{ paddingTop: `${safeTop}px` }}>
         <Yanbao mood='happy' size='md' />
         <Text className='cap'>正在算分…</Text>
       </View>
@@ -82,7 +84,10 @@ export default function Result() {
 
   return (
     <View className='page-result'>
-      <View className='content content-center'>
+      <View
+        className='content content-center'
+        style={{ paddingTop: `${safeTop + 13}px`, paddingRight: `${rightGap}px` }}
+      >
         <Yanbao mood={isLowScore ? 'go' : 'cheer'} size='lg' />
 
         <View className='stars'>

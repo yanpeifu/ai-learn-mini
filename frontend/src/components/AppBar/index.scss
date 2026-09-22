@@ -11,10 +11,10 @@
   display: flex;
   align-items: center;
   gap: 9px;
-  height: 44px;
+  box-sizing: border-box;
+  min-height: 44px;
   padding: 0 14px;
   border-bottom: 2px dashed $line;
-  box-sizing: border-box;
 }
 
 .appbar-back {

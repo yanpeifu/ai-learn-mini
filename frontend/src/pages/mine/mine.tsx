@@ -1,9 +1,10 @@
-import { Text, View } from '@tarojs/components'
+import { Navigator, Text, View } from '@tarojs/components'
 import Taro, { useDidShow, useReachBottom } from '@tarojs/taro'
 import { useCallback, useState } from 'react'
 
 import { Chip, EmptyState, Yanbao } from '@/components'
 import { COPY } from '@/constants/copy'
+import { useNavMetrics } from '@/hooks/useNavMetrics'
 import { api } from '@/services/api'
 import { storage } from '@/services/storage'
 import { useUser } from '@/store/UserContext'
@@ -16,6 +17,7 @@ const PAGE_SIZE = 20
 /** P5 我的：有记录（P5-1）/ 空状态（P5-2）。 */
 export default function Mine() {
   const { user, login } = useUser()
+  const { safeTop, rightGap } = useNavMetrics()
   const [stats, setStats] = useState<UserStats | null>(null)
   const [records, setRecords] = useState<AttemptHistoryItem[]>([])
   const [total, setTotal] = useState(0)
@@ -62,8 +64,8 @@ export default function Mine() {
   const hasRecords = records.length > 0
 
   return (
-    <View className='page-mine'>
-      <View className='profile'>
+    <View className='page-mine' style={{ paddingTop: `${safeTop + 13}px` }}>
+      <View className='profile' style={{ paddingRight: `${rightGap}px` }}>
         <View className='avatar'>
           <Yanbao mood={hasRecords ? 'happy' : 'peek'} size='sm' />
         </View>
@@ -100,14 +102,16 @@ export default function Mine() {
       {hasRecords ? (
         <View className='record-list'>
           {records.map((record) => (
-            <View
+            <Navigator
               className='rec'
+              hoverClass='rec-hover'
               key={record.attempt_id}
-              onClick={() => Taro.navigateTo({ url: `/pages/result/result?attemptId=${record.attempt_id}` })}
+              url={`/pages/result/result?attemptId=${record.attempt_id}`}
             >
               <Text className='rec-title'>{record.title}</Text>
               <Text className={`score ${scoreClass(record.accuracy)}`}>{Math.round(record.accuracy)}%</Text>
-            </View>
+              <Text className='rec-arrow'>›</Text>
+            </Navigator>
           ))}
           <Text className='cap record-footer'>
             {records.length < total

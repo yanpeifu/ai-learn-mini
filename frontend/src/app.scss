@@ -1,3 +1,5 @@
+@use './styles/fixes.scss';
+
 /* 全局基础样式：纸张底 + 墨线文字 + 系统字体族（中文不能用网络字体，主包只有 2MB） */
 page {
   background: $paper;

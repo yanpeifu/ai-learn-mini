@@ -1,10 +1,11 @@
-import { ScrollView, Text, Textarea, View } from '@tarojs/components'
+import { Navigator, ScrollView, Text, Textarea, View } from '@tarojs/components'
 import Taro, { useDidShow } from '@tarojs/taro'
 import { useCallback, useState } from 'react'
 
 import type { IconName } from '@/assets/icons'
 import { ClayButton, EmptyState, Icon, TipBar, Toast, Yanbao } from '@/components'
 import { COPY } from '@/constants/copy'
+import { useNavMetrics } from '@/hooks/useNavMetrics'
 import { api } from '@/services/api'
 import { storage } from '@/services/storage'
 import { useUser } from '@/store/UserContext'
@@ -28,6 +29,7 @@ const TEMPLATE_ICONS: Record<string, IconName> = {
 /** P1 首页：空态（P1-1）/ 学习中（P1-2）/ 输入校验错误（P1-3）。 */
 export default function Index() {
   const { login } = useUser()
+  const { safeTop, rightGap } = useNavMetrics()
   const [text, setText] = useState('')
   const [templates, setTemplates] = useState<TemplateItem[]>([])
   const [records, setRecords] = useState<AttemptHistoryItem[]>([])
@@ -85,8 +87,8 @@ export default function Index() {
     accuracy >= 90 ? 'score-good' : accuracy >= 70 ? 'score-mid' : 'score-bad'
 
   return (
-    <View className='page-index'>
-      <View className='home-head'>
+    <View className='page-index' style={{ paddingTop: `${safeTop + 13}px` }}>
+      <View className='home-head' style={{ paddingRight: `${rightGap}px` }}>
         <View className='home-head-text'>
           <Text className='h1'>{COPY.homeTitle}</Text>
           <Text className='cap'>{COPY.homeSubtitle}</Text>
@@ -151,14 +153,16 @@ export default function Index() {
         <View className='recent'>
           <Text className='sec'>{COPY.recentLearning}</Text>
           {records.map((record) => (
-            <View
+            <Navigator
               className='rec'
+              hoverClass='rec-hover'
               key={record.attempt_id}
-              onClick={() => Taro.navigateTo({ url: `/pages/result/result?attemptId=${record.attempt_id}` })}
+              url={`/pages/result/result?attemptId=${record.attempt_id}`}
             >
               <Text className='rec-title'>{record.title}</Text>
               <Text className={`score ${scoreClass(record.accuracy)}`}>{Math.round(record.accuracy)}%</Text>
-            </View>
+              <Text className='rec-arrow'>›</Text>
+            </Navigator>
           ))}
         </View>
       ) : recordsLoaded ? (
