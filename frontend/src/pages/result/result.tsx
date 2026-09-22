@@ -25,7 +25,7 @@ function formatDuration(ms: number): string {
 
 /** P4 通关结算：三星通关（P4-1）/ 低分鼓励（P4-2），也是学习记录的只读回看页。 */
 export default function Result() {
-  const { safeTop, rightGap } = useNavMetrics()
+  const { safeTop } = useNavMetrics()
   const [settlement, setSettlement] = useState<Settlement | null>(null)
   const [title, setTitle] = useState('')
   const [litStars, setLitStars] = useState(0)
@@ -86,7 +86,9 @@ export default function Result() {
     <View className='page-result'>
       <View
         className='content content-center'
-        style={{ paddingTop: `${safeTop + 13}px`, paddingRight: `${rightGap}px` }}
+        // 注意：本页是纯居中、竖向堆叠的页面，右上角没有任何内容，
+        // 所以只需要状态栏留白；加右侧避让反而会把整块内容挤偏（BUG 回归修复）。
+        style={{ paddingTop: `${safeTop + 13}px` }}
       >
         <Yanbao mood={isLowScore ? 'go' : 'cheer'} size='lg' />
 
