@@ -32,7 +32,11 @@ export default defineConfig<'webpack5'>(async (merge) => {
       828: 1.81 / 2
     },
     sourceRoot: 'src',
-    outputRoot: 'dist',
+    // 关键：小程序与 H5 的产物必须分开放。
+    // 两者共用 dist 时，后编译的会覆盖前一个，进而让开发者工具缓存失效
+    // （典型报错：ENOENT ... dist\js\app.<hash>.js —— 那是 H5 的文件，已被小程序产物覆盖）。
+    // 注意：CLI 的 --output-root 参数在当前 Taro 版本上不生效，所以在这里按平台判断。
+    outputRoot: process.env.TARO_ENV === 'h5' ? 'dist-h5' : 'dist',
     plugins: [
       "@tarojs/plugin-generator"
     ],

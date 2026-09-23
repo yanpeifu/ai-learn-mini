@@ -1,4 +1,5 @@
 dist/
+dist-h5/
 .preview-h5/
 deploy_versions/
 .temp/
