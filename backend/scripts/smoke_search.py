@@ -84,9 +84,13 @@ def run_once(
     search,
 ) -> tuple[bool, int]:
     collector = _LogCollector()
-    logger = logging.getLogger("app.search")
-    logger.addHandler(collector)
-    logger.setLevel(logging.INFO)
+    # 注意：检索相关的日志分属两个 logger —— 取资料的编排在 app.search，
+    # 而「按网址抓到正文」这条是 app.outline 发的，两个都要挂才能统计全。
+    watched = [logging.getLogger(name) for name in ("app.search", "app.outline")]
+    for logger in watched:
+        logger.disabled = False
+        logger.addHandler(collector)
+        logger.setLevel(logging.INFO)
 
     prefix = f"[{index}/{total}]"
     print(f"\n{prefix} 输入：{url or text}")
@@ -97,7 +101,8 @@ def run_once(
         print(f"{prefix} [失败] 大纲生成失败：{exc.code} - {exc.message}")
         return False, credits
     finally:
-        logger.removeHandler(collector)
+        for logger in watched:
+            logger.removeHandler(collector)
 
     if url:
         chars = collector.last_attr("chars")
