@@ -16,6 +16,8 @@ import prodConfig from './prod'
  * 否则会白屏并报 `process is not defined` —— 这是视觉验收时真实踩到的坑）。
  */
 const API_BASE = process.env.TARO_APP_API_BASE || 'http://127.0.0.1:8000'
+/** 备用地址：主地址（局域网 IP）连不上时自动切换，避免 IP 变化导致连不上后端。 */
+const API_FALLBACK = process.env.TARO_APP_API_FALLBACK || 'http://127.0.0.1:8000'
 /** 本地联调开关：true 时前端直接发 dev_ 开头的假 code（无需 AppID/Secret）。 */
 const DEV_LOGIN = process.env.TARO_APP_DEV_LOGIN || ''
 
@@ -42,6 +44,7 @@ export default defineConfig<'webpack5'>(async (merge) => {
     ],
     defineConstants: {
       'process.env.TARO_APP_API_BASE': JSON.stringify(API_BASE),
+      'process.env.TARO_APP_API_FALLBACK': JSON.stringify(API_FALLBACK),
       'process.env.TARO_APP_DEV_LOGIN': JSON.stringify(DEV_LOGIN)
     },
     copy: {

@@ -10,6 +10,14 @@ import { storage } from './storage'
  * - 401 清掉本地 token，让页面重新静默登录
  */
 const BASE_URL = process.env.TARO_APP_API_BASE || 'http://127.0.0.1:8000'
+/**
+ * 备用地址机制（本机开发专用）：
+ * 真机测试需要局域网 IP，而模拟器用 127.0.0.1 最稳；局域网 IP 会随路由器 DHCP 变化
+ * （本项目已遇到 5 次），每次都要改 IP + 重新编译。这里在主地址网络不可达时
+ * 自动切到备用地址并重试，切换成功后本次会话后续请求都走它。
+ */
+const FALLBACK_URL = process.env.TARO_APP_API_FALLBACK || 'http://127.0.0.1:8000'
+let activeBaseUrl = BASE_URL
 const DEFAULT_TIMEOUT = 12000
 const DEFAULT_RETRY = 2
 
@@ -63,7 +71,7 @@ async function send<T>(options: RequestOptions, attempt: number): Promise<T> {
 
   try {
     const response = await Taro.request({
-      url: `${BASE_URL}${options.url}`,
+      url: `${activeBaseUrl}${options.url}`,
       method: options.method ?? 'GET',
       data: options.data,
       header,
@@ -96,6 +104,11 @@ async function send<T>(options: RequestOptions, attempt: number): Promise<T> {
     )
   } catch (error) {
     if (error instanceof ApiError) throw error
+    // 网络层失败（超时/连不上）：先尝试切换到备用地址
+    if (FALLBACK_URL && activeBaseUrl !== FALLBACK_URL) {
+      activeBaseUrl = FALLBACK_URL
+      return send<T>(options, attempt + 1)
+    }
     if (attempt < retry) {
       await sleep(300 * (attempt + 1))
       return send<T>(options, attempt + 1)
