@@ -137,8 +137,22 @@
 
 .mine-empty {
   display: flex;
+  /* 注意：必须是纵向 flex。横向 flex 会让空状态子元素收缩成「内容宽度」，
+     结果就是一块窄内容贴在左边（真机实测过）。 */
+  flex-direction: column;
   flex: 1;
   min-height: 220px;
+}
+
+.rec-hover {
+  transform: translateY(2px);
+  box-shadow: 0 0 0 $ink;
+}
+
+.rec-arrow {
+  flex: none;
+  font-size: 15px;
+  color: $ink-2;
 }
 
 .agreements {

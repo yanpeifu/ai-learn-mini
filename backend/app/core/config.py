@@ -14,6 +14,7 @@ PROJECT_ROOT = BACKEND_ROOT.parent
 
 LLMProviderName = Literal["deepseek", "bailian", "volcengine", "mock"]
 StructuredMethod = Literal["json_schema", "function_calling", "json_mode"]
+SearchMode = Literal["auto", "always", "off"]
 
 PROVIDER_PRESETS: dict[str, dict[str, str]] = {
     "deepseek": {"base_url": "https://api.deepseek.com/v1", "model": "deepseek-chat"},
@@ -98,6 +99,26 @@ class Settings(BaseSettings):
     volcengine_base_url: str = PROVIDER_PRESETS["volcengine"]["base_url"]
     volcengine_model: str = PROVIDER_PRESETS["volcengine"]["model"]
 
+    # ---------- 联网检索（Tavily，选填）----------
+    # 用途：出题前先去网上取资料，避免「模型没学过的知识」被答错。
+    # 不填 TAVILY_API_KEY 即视为关闭，其它功能不受影响。
+    tavily_api_key: str | None = None
+    # auto = 需要时才搜；always = 每次都搜；off = 完全关闭
+    search_mode: SearchMode = "auto"
+    search_timeout: float = 20
+    # 简单知识取下限，复杂知识取上限（实例化期参数，见 design.md D3）
+    search_max_results_min: int = 3
+    search_max_results_max: int = 8
+    # 一次生成最多用几个检索词
+    search_max_queries: int = 3
+    # 注入提示词的资料预算（字符数）；这是模型上下文保护，不是输入框的字数校验
+    search_context_max_chars: int = 20000
+    daily_search_quota: int = 30
+    # 地域偏置：小写英文国家名（如 china）；仅在 topic=general 时生效
+    search_country: str | None = None
+    # 优先来源站点（逗号分隔，走 include_domains）
+    search_preferred_domains: str = ""
+
     # ---------- 业务参数（PRD 2.2 / M3-05）----------
     outline_min_points: int = 3
     outline_max_points: int = 5
@@ -150,6 +171,23 @@ class Settings(BaseSettings):
         if self.llm_provider == "volcengine":
             return self.volcengine_base_url
         return ""
+
+    @property
+    def search_effective_mode(self) -> str:
+        """没配 Key 时一律视为关闭，避免「配了开关却根本调不通」。"""
+        if not self.tavily_api_key or not self.tavily_api_key.strip():
+            return "off"
+        return self.search_mode
+
+    @property
+    def search_enabled(self) -> bool:
+        return self.search_effective_mode != "off"
+
+    @property
+    def preferred_search_domains(self) -> list[str]:
+        return [
+            item.strip() for item in self.search_preferred_domains.split(",") if item.strip()
+        ]
 
     def provider_credentials(self, provider: str) -> tuple[str, str, str | None]:
         """返回 (base_url, model, api_key)，供适配层切换供应商使用。"""

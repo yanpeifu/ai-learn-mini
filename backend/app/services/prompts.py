@@ -15,6 +15,7 @@ from typing import Sequence
 
 from app.schemas.generation import OutlinePoint
 from app.services.quality import MIN_EXPLANATION_CHARS
+from app.services.search.base import SearchHit
 
 OUTLINE_SYSTEM_PROMPT = (
     "你是一位资深教研专家，擅长把任意知识内容拆解为结构化、可判分、有教学价值的学习大纲。"
@@ -26,9 +27,28 @@ QUESTION_SYSTEM_PROMPT = (
     "你只输出严格的 json，不输出任何解释、说明或 Markdown 代码块标记。"
 )
 
+_REFERENCE_RULES = """【参考资料使用规则（优先级最高）】
+1. 上面的参考资料来自联网检索，是本次生成的事实依据，优先级高于你自己的记忆。
+2. 只依据参考资料讲事实；参考资料没有写到的内容不要凭记忆补充，也不要编造。
+3. 参考资料与你的记忆冲突时，一律以参考资料为准。
+4. 参考资料不足以支撑某个知识点时，不要为它编造内容。"""
+
+
+def render_references(references: Sequence[SearchHit]) -> str:
+    """把外部资料渲染成提示词里的段落；没有资料时返回空串（提示词保持原样）。"""
+    if not references:
+        return ""
+    blocks = ["【参考资料】"]
+    for index, hit in enumerate(references, 1):
+        body = (hit.raw_content or hit.content or "").strip()
+        blocks.append(f"[{index}] {hit.title}｜{hit.url}\n{body}")
+    blocks.append(_REFERENCE_RULES)
+    return "\n\n".join(blocks) + "\n\n"
+
+
 OUTLINE_USER_TEMPLATE = """请把下面这段知识内容拆成 3-5 个知识点，供后续出题使用。
 
-【知识内容】
+{references}【知识内容】
 {text}
 
 【输出要求】
@@ -36,6 +56,10 @@ OUTLINE_USER_TEMPLATE = """请把下面这段知识内容拆成 3-5 个知识点
 json 结构如下：
 {{
   "title": "用不超过 20 字概括这段内容的主题",
+  "needs_external_reference": true,
+  "search_queries": ["检索关键词1", "检索关键词2"],
+  "complexity": "complex",
+  "timeliness": "stable",
   "points": [
     {{"id": "kp1", "title": "知识点名称", "summary": "一句话说明该知识点的核心"}}
   ]
@@ -48,6 +72,12 @@ json 结构如下：
 4. 知识点之间不要重叠，要能看出学习的先后顺序。
 5. 所有文本中禁止使用英文双引号，需要引用时一律使用中文引号「」。
 6. 输出必须是完整闭合的合法 json，不要在结尾被截断。
+7. needs_external_reference 表示「这段内容是否需要最新资料才能讲准」：
+   凡是新出现的技术、工具、产品、事件，或你不确定自己是否确有把握的，一律填 true。
+8. complexity 填 simple 或 complex（概念多、层次深、跨领域填 complex）；
+   timeliness 填 stable 或 time_sensitive（近期事件、刚发布的版本填 time_sensitive）。
+9. search_queries 在 needs_external_reference 为 true 时给出 1-3 个检索关键词；
+   为 false 时给空数组 []。
 """
 
 QUESTION_USER_TEMPLATE = """请基于下面已确认的知识大纲，生成一套闯关题库。
@@ -55,7 +85,7 @@ QUESTION_USER_TEMPLATE = """请基于下面已确认的知识大纲，生成一�
 【知识大纲】
 {outline}
 
-【输出要求】
+{references}【输出要求】
 严格输出 json，不要输出任何解释性文字，不要使用 Markdown 代码块包裹。
 json 结构如下：
 {{
@@ -104,7 +134,7 @@ REPAIR_USER_TEMPLATE = """下面这些题存在质量问题，请重写它们。
 【知识大纲】
 {outline}
 
-【需要重写的题目与问题】
+{references}【需要重写的题目与问题】
 {problems}
 
 【输出要求】
@@ -142,7 +172,7 @@ BACKFILL_USER_TEMPLATE = """下面的题库还缺题，请补足。
 【知识大纲】
 {outline}
 
-【缺口说明】
+{references}【缺口说明】
 {gaps}
 
 【输出要求】
@@ -181,21 +211,33 @@ def format_outline(points: Sequence[OutlinePoint]) -> str:
     return "\n".join(lines)
 
 
-def build_outline_prompt(text: str) -> str:
-    return OUTLINE_USER_TEMPLATE.format(text=text.strip())
+def build_outline_prompt(text: str, *, references: Sequence[SearchHit] = ()) -> str:
+    return OUTLINE_USER_TEMPLATE.format(
+        text=text.strip(), references=render_references(references)
+    )
 
 
-def build_questions_prompt(points: Sequence[OutlinePoint], *, total: int, per_level: int) -> str:
+def build_questions_prompt(
+    points: Sequence[OutlinePoint],
+    *,
+    total: int,
+    per_level: int,
+    references: Sequence[SearchHit] = (),
+) -> str:
     return QUESTION_USER_TEMPLATE.format(
         outline=format_outline(points),
         total=total,
         per_level=per_level,
         min_explain=MIN_EXPLANATION_CHARS,
+        references=render_references(references),
     )
 
 
 def build_repair_prompt(
-    points: Sequence[OutlinePoint], problems: Sequence[tuple[str, Sequence[str]]]
+    points: Sequence[OutlinePoint],
+    problems: Sequence[tuple[str, Sequence[str]]],
+    *,
+    references: Sequence[SearchHit] = (),
 ) -> str:
     lines: list[str] = []
     for where, messages in problems:
@@ -204,12 +246,19 @@ def build_repair_prompt(
         outline=format_outline(points),
         problems="\n".join(lines),
         min_explain=MIN_EXPLANATION_CHARS,
+        references=render_references(references),
     )
 
 
-def build_backfill_prompt(points: Sequence[OutlinePoint], gaps: Sequence[str]) -> str:
+def build_backfill_prompt(
+    points: Sequence[OutlinePoint],
+    gaps: Sequence[str],
+    *,
+    references: Sequence[SearchHit] = (),
+) -> str:
     return BACKFILL_USER_TEMPLATE.format(
         outline=format_outline(points),
         gaps="\n".join(f"- {gap}" for gap in gaps),
         min_explain=MIN_EXPLANATION_CHARS,
+        references=render_references(references),
     )

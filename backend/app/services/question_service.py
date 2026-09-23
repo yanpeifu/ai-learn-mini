@@ -11,6 +11,7 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 
 from app.core.config import Settings
@@ -32,6 +33,7 @@ from app.services.quality import (
     group_fatal_issues,
     warning_issues,
 )
+from app.services.search.base import SearchHit
 
 logger = logging.getLogger("app.question")
 
@@ -47,14 +49,23 @@ class QuestionSetResult:
 
 
 def generate_question_set(
-    provider: LLMProvider, points: list[OutlinePoint], settings: Settings
+    provider: LLMProvider,
+    points: list[OutlinePoint],
+    settings: Settings,
+    *,
+    references: Sequence[SearchHit] = (),
 ) -> QuestionSetResult:
     total_levels = settings.total_level_count
     per_level = settings.questions_per_level
     messages = [
         ChatMessage.system(QUESTION_SYSTEM_PROMPT),
         ChatMessage.user(
-            build_questions_prompt(points, total=total_levels * per_level, per_level=per_level)
+            build_questions_prompt(
+                points,
+                total=total_levels * per_level,
+                per_level=per_level,
+                references=references,
+            )
         ),
     ]
     call = invoke_json(
@@ -63,7 +74,13 @@ def generate_question_set(
     payload = assign_levels(call.payload, total_levels=total_levels, per_level=per_level)
 
     payload, regenerated = _repair_defects(
-        provider, points, payload, settings, total_levels=total_levels, per_level=per_level
+        provider,
+        points,
+        payload,
+        settings,
+        total_levels=total_levels,
+        per_level=per_level,
+        references=references,
     )
     payload, dropped = _drop_defective(
         payload, total_levels=total_levels, per_level=per_level
@@ -71,7 +88,13 @@ def generate_question_set(
     payload, freed = _free_slots_for_uncovered_points(payload, points)
     dropped += freed
     payload, backfilled, dropped_more = _backfill_gaps(
-        provider, points, payload, settings, total_levels=total_levels, per_level=per_level
+        provider,
+        points,
+        payload,
+        settings,
+        total_levels=total_levels,
+        per_level=per_level,
+        references=references,
     )
     dropped += dropped_more
 
@@ -129,6 +152,7 @@ def _repair_defects(
     *,
     total_levels: int,
     per_level: int,
+    references: Sequence[SearchHit] = (),
 ) -> tuple[GeneratedQuestionSet, int]:
     regenerated = 0
     for _round in range(max(1, settings.llm_max_retries)):
@@ -142,7 +166,13 @@ def _repair_defects(
 
         messages = [
             ChatMessage.system(QUESTION_SYSTEM_PROMPT),
-            ChatMessage.user(build_repair_prompt(points, _problem_messages(payload, defects))),
+            ChatMessage.user(
+                build_repair_prompt(
+                    points,
+                    _problem_messages(payload, defects),
+                    references=references,
+                )
+            ),
         ]
         try:
             repaired = invoke_json(
@@ -199,6 +229,7 @@ def _backfill_gaps(
     *,
     total_levels: int,
     per_level: int,
+    references: Sequence[SearchHit] = (),
 ) -> tuple[GeneratedQuestionSet, int, int]:
     backfilled = 0
     dropped = 0
@@ -208,7 +239,7 @@ def _backfill_gaps(
             return payload, backfilled, dropped
         messages = [
             ChatMessage.system(QUESTION_SYSTEM_PROMPT),
-            ChatMessage.user(build_backfill_prompt(points, gaps)),
+            ChatMessage.user(build_backfill_prompt(points, gaps, references=references)),
         ]
         try:
             extra = invoke_json(

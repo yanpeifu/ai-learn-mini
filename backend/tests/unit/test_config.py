@@ -3,8 +3,9 @@
 from pathlib import Path
 
 import pytest
-from app.core.config import Settings
 from pydantic import ValidationError
+
+from app.core.config import Settings
 
 
 def test_defaults_without_env_file() -> None:
@@ -93,3 +94,72 @@ def test_fallback_parsing_ignores_blanks() -> None:
     settings = Settings(_env_file=None, llm_fallbacks="bailian, , volcengine ,")
 
     assert settings.llm_fallback_providers == ["bailian", "volcengine"]
+
+
+def test_search_is_off_without_api_key() -> None:
+    """任务 1.3 的验收点：没配 Key 时，检索等效于关闭。"""
+    settings = Settings(_env_file=None)
+
+    assert settings.search_mode == "auto"  # 配置项本身保持默认
+    assert settings.search_effective_mode == "off"
+    assert settings.search_enabled is False
+    assert settings.search_timeout == 20
+    assert settings.search_max_results_min == 3
+    assert settings.search_max_results_max == 8
+    assert settings.search_max_queries == 3
+    assert settings.search_context_max_chars == 20000
+    assert settings.daily_search_quota == 30
+    assert settings.preferred_search_domains == []
+
+
+def test_search_turns_on_with_api_key(tmp_path: Path) -> None:
+    env_file = tmp_path / ".env"
+    env_file.write_text(
+        "\n".join(
+            [
+                "TAVILY_API_KEY=tvly-placeholder",
+                "SEARCH_MODE=always",
+                "SEARCH_TIMEOUT=15",
+                "SEARCH_MAX_RESULTS_MIN=2",
+                "SEARCH_MAX_RESULTS_MAX=6",
+                "SEARCH_MAX_QUERIES=4",
+                "SEARCH_CONTEXT_MAX_CHARS=8000",
+                "DAILY_SEARCH_QUOTA=10",
+                "SEARCH_COUNTRY=china",
+                "SEARCH_PREFERRED_DOMAINS=example.cn, example.org",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    settings = Settings(_env_file=env_file)
+
+    assert settings.search_enabled is True
+    assert settings.search_effective_mode == "always"
+    assert settings.search_timeout == 15
+    assert settings.search_max_results_min == 2
+    assert settings.search_max_results_max == 6
+    assert settings.search_max_queries == 4
+    assert settings.search_context_max_chars == 8000
+    assert settings.daily_search_quota == 10
+    assert settings.search_country == "china"
+    assert settings.preferred_search_domains == ["example.cn", "example.org"]
+
+
+def test_search_off_mode_wins_over_api_key(tmp_path: Path) -> None:
+    env_file = tmp_path / ".env"
+    env_file.write_text(
+        "TAVILY_API_KEY=tvly-placeholder\nSEARCH_MODE=off\n", encoding="utf-8"
+    )
+
+    settings = Settings(_env_file=env_file)
+
+    assert settings.search_effective_mode == "off"
+    assert settings.search_enabled is False
+
+
+def test_blank_search_api_key_counts_as_off(tmp_path: Path) -> None:
+    env_file = tmp_path / ".env"
+    env_file.write_text("TAVILY_API_KEY=\n", encoding="utf-8")
+
+    assert Settings(_env_file=env_file).search_enabled is False

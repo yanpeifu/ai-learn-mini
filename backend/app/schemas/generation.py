@@ -55,6 +55,19 @@ class OutlinePoint(BaseModel):
 class OutlinePayload(BaseModel):
     title: str = Field(default="", description="用不超过 20 字概括这段内容的主题")
     points: list[OutlinePoint] = Field(min_length=3, max_length=5)
+    # ↓ 与「是否需要联网取资料」有关：模型顺手给出的判断，用来决定要不要检索
+    needs_external_reference: bool = Field(
+        default=False, description="这段内容是否需要最新资料才能讲准"
+    )
+    search_queries: list[str] = Field(
+        default_factory=list, description="建议的检索关键词（最多 3 个）"
+    )
+    complexity: Literal["simple", "complex"] = Field(
+        default="simple", description="知识复杂度：simple / complex"
+    )
+    timeliness: Literal["stable", "time_sensitive"] = Field(
+        default="stable", description="时效性：stable / time_sensitive"
+    )
 
 
 class GeneratedOption(BaseModel):

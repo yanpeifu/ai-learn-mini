@@ -20,6 +20,9 @@ from app.repositories import (
 from app.schemas.generation import GeneratedQuestionSet, OutlinePoint
 from app.services.llm.base import LLMProvider
 from app.services.question_service import generate_question_set
+from app.services.search.base import SearchProvider
+from app.services.search.grounding import gather_references
+from app.services.search.profiles import KnowledgeTraits
 from app.services.serializers import build_public_levels
 from app.services.task_registry import (
     STATUS_FAILED,
@@ -73,6 +76,7 @@ def start_levels_task(
     registry: TaskRegistry,
     session_factory: Any,
     provider: LLMProvider,
+    search_provider: SearchProvider,
     settings: Settings,
     outline_id: int,
     user_id: int,
@@ -92,9 +96,11 @@ def start_levels_task(
             "registry": registry,
             "session_factory": session_factory,
             "provider": provider,
+            "search_provider": search_provider,
             "settings": settings,
             "task_id": task.id,
             "outline_id": outline_id,
+            "user_id": user_id,
         },
         name=f"levels-task-{task.id}",
         daemon=True,
@@ -108,9 +114,11 @@ def _run_levels_task(
     registry: TaskRegistry,
     session_factory: Any,
     provider: LLMProvider,
+    search_provider: SearchProvider,
     settings: Settings,
     task_id: str,
     outline_id: int,
+    user_id: int,
 ) -> None:
     """后台线程里真正干活的函数：出题 → 校验 → 落库 → 写回结果。"""
     db: Session = session_factory()
@@ -121,7 +129,10 @@ def _run_levels_task(
             raise AppError(ErrorCode.OUTLINE_NOT_FOUND)
 
         points = [OutlinePoint(**item) for item in outline.outline_json]
-        result = generate_question_set(provider, points, settings)
+        references = _gather_question_references(
+            search_provider, points, settings=settings, user_id=user_id
+        )
+        result = generate_question_set(provider, points, settings, references=references)
 
         registry.update(task_id, stage="saving")
         persist_levels(db, outline, result.payload)
@@ -176,3 +187,29 @@ def _run_levels_task(
         )
     finally:
         db.close()
+
+
+def _gather_question_references(
+    search_provider: SearchProvider,
+    points: list[OutlinePoint],
+    *,
+    settings: Settings,
+    user_id: int,
+) -> tuple:
+    """出题阶段再取一次资料。
+
+    检索结果不落库（design.md D6），所以这里按大纲的知识点重新检索一次：
+    代价是每次学习可能消耗两次检索额度，换来的是不用加表、不用数据迁移。
+    取不到资料不影响出题，只是题目失去资料依据。
+    """
+    queries = [point.title for point in points][: settings.search_max_queries]
+    grounding = gather_references(
+        search_provider,
+        queries=queries,
+        # 出题要覆盖 15 道题，比大纲更依赖正文细节，所以固定按「复杂知识」取资料
+        traits=KnowledgeTraits(complexity="complex"),
+        settings=settings,
+        user_id=user_id,
+        purpose="levels",
+    )
+    return grounding.references

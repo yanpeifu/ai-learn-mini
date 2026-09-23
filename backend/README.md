@@ -52,6 +52,36 @@ $env:COVERAGE_FILE="$env:TEMP\.coverage_ai_learn"
 | `DEV_LOGIN_ENABLED` | `false` | 本地用假 openid 登录（无 AppID 时） |
 | `DAILY_OUTLINE_QUOTA` / `DAILY_LEVEL_QUOTA` | `20` / `20` | 单用户每日生成次数上限 |
 
+### 联网检索（Tavily，选填）
+
+给「AI 解析知识大纲、生成题目」提供外部资料来源：按关键词搜资料，或按用户给出的**网址**抓整页正文。
+**不配 `TAVILY_API_KEY` 就是关闭状态**，行为与改动前完全一致。
+
+| 变量 | 默认 | 说明 |
+| --- | --- | --- |
+| `TAVILY_API_KEY` | 空 | 留空 = 关闭检索；填了才启用 |
+| `SEARCH_MODE` | `auto` | `auto` 按需检索 / `always` 每次都搜 / `off` 完全关闭 |
+| `SEARCH_CONTEXT_MAX_CHARS` | 见 `config.py` | 注入提示词的资料预算（不是输入框的字数校验） |
+| `DAILY_SEARCH_QUOTA` | 见 `config.py` | 单用户每日检索次数上限（保护每月 1000 免费 credits） |
+
+依赖包固定为 `langchain-tavily==0.2.18`（与 `langchain` 1.x 生态对齐）。
+
+**参数分层（已用 `inspect` 核对真实签名，不是照文档猜）**
+
+官方 API 支持的参数，LangChain 封装不一定都暴露；实测该版本的真实边界如下：
+
+| 工具 | 只能在**创建时**设定（调用时改无效） | 可以在**调用时**传 |
+| --- | --- | --- |
+| `TavilySearch` | `max_results`、`include_raw_content`、`include_answer`、`country`、`auto_parameters`、`include_usage`、`exact_match` | `query`(必填)、`include_domains`、`exclude_domains`、`search_depth`、`time_range`、`topic`、`start_date`、`end_date`、`include_images` |
+| `TavilyExtract` | `chunks_per_source`、`format` | `urls`(必填)、`extract_depth`、`include_images`、`query` |
+
+两个由此而来的实现约束：
+
+1. 「动态调整查询力度」必须做成**先决定档位 → 再创建对应工具 → 再调用**，不能指望调用时临时改；
+2. `language` 与 `filter_by_language` **未被该封装暴露**，所以面向国内外用户的偏置改用调用期手段
+   （中文/英文关键词 + `include_domains` 限定来源站点）；需要强地域偏置时才用创建期的 `country`
+   （注意它只在 `topic="general"` 时生效）。
+
 ## LLM 适配层（LangChain）
 
 业务代码只依赖自研门面 `app/services/llm/base.py` 的 `LLMProvider`（`chat` / `chat_json` /

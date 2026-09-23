@@ -197,6 +197,19 @@
 
 .home-empty {
   display: flex;
+  /* 同 mine-empty：必须纵向 flex，否则空状态会收缩到左边 */
+  flex-direction: column;
   flex: 1;
   min-height: 180px;
+}
+
+.rec-hover {
+  transform: translateY(2px);
+  box-shadow: 0 0 0 $ink;
+}
+
+.rec-arrow {
+  flex: none;
+  font-size: 15px;
+  color: $ink-2;
 }

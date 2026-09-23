@@ -5,7 +5,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Request
 from sqlalchemy.orm import Session
 
-from app.api.deps import AppSettings, CurrentUser, DbSession, LlmProvider
+from app.api.deps import AppSettings, CurrentUser, DbSession, LlmProvider, SearchDep
 from app.core.errors import AppError, ErrorCode
 from app.core.response import ok
 from app.models import KnowledgeOutline
@@ -37,10 +37,13 @@ def create_outline(
     user: CurrentUser,
     settings: AppSettings,
     provider: LlmProvider,
+    search: SearchDep,
 ) -> dict:
-    """生成知识大纲：一次模型调用拆出 3–5 个知识点。"""
+    """生成知识大纲：一次模型调用拆出 3–5 个知识点；需要时先联网取资料再重跑一次。"""
     ensure_outline_quota(db, user.id, settings)
-    result = generate_outline(provider, payload.raw_text, settings)
+    result = generate_outline(
+        provider, payload.raw_text, settings, search=search, user_id=user.id
+    )
     raw_text = payload.raw_text.strip()
     source = KnowledgeSourceRepository(db).create(
         user_id=user.id, raw_text=raw_text, title=result.payload.title or None
@@ -97,6 +100,7 @@ def create_levels(
     user: CurrentUser,
     settings: AppSettings,
     provider: LlmProvider,
+    search: SearchDep,
 ) -> dict:
     """提交出题任务，**立即返回 task_id**（出题在后台跑，前端轮询进度）。
 
@@ -110,6 +114,7 @@ def create_levels(
         registry=request.app.state.task_registry,
         session_factory=request.app.state.session_factory,
         provider=provider,
+        search_provider=search,
         settings=settings,
         outline_id=outline.id,
         user_id=user.id,
