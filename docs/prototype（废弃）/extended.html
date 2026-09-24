@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>扩展功能原型(V0.5+) · AI 闯关学习小程序</title>
+<style>
+  :root{
+    /* 布局沿用原版 · 颜色/边框/按钮互动 按漫画黏土风(治愈向)调校 */
+    --paper:#FFFCF7; --paper-2:#FFFFFF; --card:#FFFFFF;
+    --ink:#33302E; --ink-soft:#8A8078;
+    --sun:#FFA85C; --sun-deep:#EE9247;
+    --sun-soft:#FFE08A; --sun-tint:#FFF3D9;
+    --red:#FF9A9A; --red-i:#C4564F; --red-soft:#FFEFEE;
+    --green:#7ED9A8; --green-i:#2A7D57; --green-soft:#E9F8EE;
+    --blue:#B9A6F5; --blue-soft:#F0EBFD;
+    --peach:#FFD9C7;
+    --line:#F0E9E0;
+    --halftone:rgba(51,48,46,.035);
+    --bw:2.5px;
+    --hard:0 2px 0 var(--ink);
+    --soft:0 2px 0 var(--ink), 0 10px 20px rgba(51,48,46,.06);
+    --gloss:inset 0 2px 0 rgba(255,255,255,.65);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{
+    background:var(--paper);
+    background-image:radial-gradient(var(--halftone) 1.2px, transparent 1.2px);
+    background-size:14px 14px;
+    color:var(--ink);
+    font-family:"PingFang SC","HarmonyOS Sans SC","MiSans","Microsoft YaHei",sans-serif;
+    line-height:1.65;-webkit-font-smoothing:antialiased;
+    padding:34px 20px 90px;
+  }
+  .hand{font-weight:800;}
+  .wrap{max-width:1280px;margin:0 auto;}
+
+  header{text-align:center;margin-bottom:20px;}
+  .badge{display:inline-block;background:var(--sun-soft);color:var(--ink);border:var(--bw) solid var(--ink);
+    border-radius:999px;padding:5px 16px;font-weight:700;font-size:12.5px;
+    box-shadow:var(--hard);transform:rotate(-2deg);letter-spacing:1px;}
+  h1{font-size:28px;margin:14px 0 6px;letter-spacing:2px;font-weight:800;}
+  h1 .accent{color:var(--red-i);}
+  .sub{color:var(--ink-soft);font-size:14px;line-height:1.9;}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(350px,1fr));gap:38px 30px;
+    justify-items:center;margin-top:44px;}
+  .cell{width:100%;max-width:362px;}
+  .phone{width:100%;background:var(--card);border:var(--bw) solid var(--ink);border-radius:34px;
+    box-shadow:var(--soft);overflow:hidden;position:relative;}
+  .notch{height:26px;display:grid;place-items:center;background:var(--paper);
+    border-bottom:2px solid rgba(51,48,46,.12);}
+  .notch i{width:74px;height:9px;background:rgba(51,48,46,.18);border-radius:999px;}
+  .screen{padding:14px 14px 20px;min-height:648px;background:var(--paper);position:relative;
+    display:flex;flex-direction:column;overflow:hidden;}
+  .cap{text-align:center;margin-top:13px;line-height:1.6;}
+  .cap b{font-size:14px;display:block;}
+  .cap span{color:var(--ink-soft);font-size:12px;}
+  .pno{display:inline-block;background:var(--ink);color:#FFF;font-family:ui-monospace,Consolas,monospace;
+    font-size:11px;border-radius:999px;padding:1px 9px;margin-right:6px;vertical-align:1px;}
+
+  .card{background:var(--card);border:var(--bw) solid var(--ink);border-radius:24px;
+    box-shadow:var(--soft),var(--gloss);padding:16px;}
+  .appbar{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+  .appbar .back{width:34px;height:34px;flex:none;background:var(--card);border:var(--bw) solid var(--ink);
+    border-radius:12px;display:grid;place-items:center;font-weight:800;font-size:16px;box-shadow:var(--hard);}
+  .appbar .tt{flex:1;text-align:center;font-size:16px;font-weight:800;}
+  .appbar .act{width:34px;height:34px;flex:none;background:var(--card);border:var(--bw) solid var(--ink);
+    border-radius:12px;display:grid;place-items:center;font-weight:800;box-shadow:var(--hard);}
+  .btn-main{display:block;width:100%;background:var(--sun);color:var(--ink);border:var(--bw) solid var(--ink);
+    border-radius:18px;padding:13px 0;font-size:16px;font-weight:800;letter-spacing:4px;text-indent:4px;
+    box-shadow:var(--soft),var(--gloss);text-align:center;cursor:pointer;
+    transition:transform 120ms cubic-bezier(.34,1.56,.64,1),box-shadow 120ms ease-out;}
+  .btn-main:active{transform:translateY(2px);box-shadow:0 0 0 var(--ink),var(--gloss);background:var(--sun-deep);}
+  .btn-sub{display:block;width:100%;background:var(--card);border:var(--bw) solid var(--ink);border-radius:18px;
+    padding:12px 0;font-weight:800;font-size:15px;box-shadow:var(--soft),var(--gloss);text-align:center;
+    transition:transform 120ms cubic-bezier(.34,1.56,.64,1),box-shadow 120ms ease-out;}
+  .btn-sub:active{transform:translateY(2px);box-shadow:0 0 0 var(--ink),var(--gloss);}
+  .btn-row{display:flex;gap:12px;}
+  .btn-row>*{flex:1;}
+  .tag{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:800;
+    border:2px solid var(--ink);border-radius:999px;padding:2px 9px;background:var(--sun-tint);}
+  .tag.red{background:var(--red-soft);} .tag.green{background:var(--green-soft);}
+  .ai-mark{display:inline-block;font-size:10px;color:var(--ink-soft);border:1.5px dashed var(--ink-soft);
+    border-radius:999px;padding:1px 8px;}
+  .avatar{border-radius:50%;border:var(--bw) solid var(--ink);background:var(--card);flex:none;}
+  .track{height:16px;border:var(--bw) solid var(--ink);border-radius:999px;background:var(--card);overflow:hidden;
+    box-shadow:var(--hard);}
+  .fill{height:100%;background:repeating-linear-gradient(45deg,var(--sun) 0 9px,#FFBD77 9px 18px);
+    border-right:var(--bw) solid var(--ink);}
+  .note-line{font-size:11px;color:var(--ink-soft);text-align:center;line-height:1.8;}
+  .divider-dash{border-top:2px dashed var(--line);margin:14px 0;}
+  .spacer{flex:1;}
+  .opt{display:flex;gap:10px;align-items:center;border:var(--bw) solid var(--ink);border-radius:17px;
+    padding:11px 12px;margin-bottom:9px;background:var(--card);font-size:13px;line-height:1.65;position:relative;
+    box-shadow:var(--hard);}
+  .opt .key{width:26px;height:26px;flex:none;border:2px solid var(--ink);border-radius:8px;
+    display:grid;place-items:center;font-weight:800;font-size:12.5px;background:var(--paper);}
+  .opt.sel{border-color:var(--sun-deep);background:var(--sun-soft);}
+  .opt.sel .key{background:var(--sun);color:var(--ink);border-color:var(--sun-deep);}
+  .opt.dim{opacity:.5;box-shadow:none;border-style:dashed;}
+  .bubble-wrap{position:relative;padding-top:24px;margin-top:4px;}
+  .bubble-who{position:absolute;top:-2px;left:10px;display:flex;align-items:center;gap:6px;z-index:2;}
+  .bubble-who .yb-mini{width:36px;height:36px;background:var(--card);border:var(--bw) solid var(--ink);
+    border-radius:50%;display:grid;place-items:center;box-shadow:var(--hard);overflow:hidden;}
+  .bubble-who .yb-mini svg{width:30px;height:30px;}
+  .bubble-who span{font-size:11px;color:var(--ink-soft);font-weight:700;}
+  .bubble{background:var(--card);border:var(--bw) solid var(--ink);border-radius:4px 20px 20px 20px;
+    padding:20px 14px 12px;font-size:12.5px;line-height:2;position:relative;}
+  .bubble .tail{position:absolute;left:-10px;top:24px;width:14px;height:14px;background:inherit;
+    border-left:var(--bw) solid var(--ink);border-bottom:var(--bw) solid var(--ink);transform:rotate(45deg);}
+  .bubble .exp{color:#5b544e;}
+
+  /* ---------- 关卡地图(布局不变) ---------- */
+  .map-wrap{position:relative;flex:1;min-height:470px;}
+  .map-svg{position:absolute;inset:0;width:100%;height:100%;}
+  .node{position:absolute;width:66px;height:66px;border-radius:50%;border:var(--bw) solid var(--ink);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    font-weight:800;font-size:11px;z-index:2;}
+  .node .n-ic{font-size:19px;line-height:1;}
+  .node .n-tt{margin-top:1px;}
+  .node.done{background:var(--green);color:var(--ink);box-shadow:var(--hard);}
+  .node.now{background:var(--sun);color:var(--ink);box-shadow:var(--hard);animation:pulse 1.6s infinite;}
+  @keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.09);}}
+  .node.lock{background:#F1ECE4;color:var(--ink-soft);box-shadow:none;border-style:dashed;}
+  .node .n-stars{position:absolute;bottom:-14px;left:50%;transform:translateX(-50%);
+    background:#fff;border:2px solid var(--ink);border-radius:999px;padding:0 6px;font-size:9px;white-space:nowrap;}
+  .node .yb-flag{position:absolute;top:-52px;left:50%;transform:translateX(-50%);width:56px;height:56px;}
+
+  /* ---------- 雷达 / 折线 ---------- */
+  .radar-wrap{display:flex;gap:10px;align-items:center;}
+  .legend-dot{display:inline-block;width:10px;height:10px;border-radius:3px;border:1.5px solid var(--ink);
+    vertical-align:-1px;margin-right:5px;}
+  .em-chip{display:flex;align-items:center;gap:9px;border:var(--bw) solid var(--ink);border-radius:20px;
+    padding:9px 11px;background:var(--card);margin-bottom:8px;font-size:12px;box-shadow:var(--hard);}
+  .em-chip b{font-size:13px;}
+  .em-chip .n{margin-left:auto;font-weight:800;font-size:15px;flex:none;}
+
+  /* ---------- 海报(布局不变) ---------- */
+  .poster{border:var(--bw) solid var(--ink);border-radius:24px;box-shadow:var(--soft),var(--gloss);
+    padding:18px 15px;text-align:center;position:relative;overflow:hidden;
+    background:linear-gradient(160deg,#FFFFFF 0%,#FFF6E8 60%,#FFEFDB 100%);}
+  .poster::before{content:"";position:absolute;inset:0;opacity:.5;
+    background:radial-gradient(rgba(51,48,46,.06) 1px, transparent 1px);background-size:12px 12px;pointer-events:none;}
+  .poster .p-tag{display:inline-block;background:var(--red-i);color:#fff;border:var(--bw) solid var(--ink);
+    border-radius:999px;padding:3px 14px;font-size:15px;font-weight:800;transform:rotate(-2deg);
+    box-shadow:var(--hard);}
+  .poster .p-tag.alt{background:var(--blue);color:var(--ink);}
+  .poster .p-num{font-size:54px;font-weight:800;line-height:1.1;letter-spacing:-2px;color:var(--sun-deep);}
+  .qr{width:74px;height:74px;margin:6px auto 2px;background:#fff;border:var(--bw) solid var(--ink);border-radius:14px;
+    display:grid;place-items:center;font-size:9px;color:var(--ink-soft);position:relative;overflow:hidden;}
+  .qr::before{content:"";position:absolute;inset:8px;
+    background:
+      linear-gradient(90deg,#33302E 22%,transparent 22%) 0 0/33.3% 33.3%,
+      linear-gradient(90deg,#33302E 22%,transparent 22%) 33.3% 16.6%/33.3% 33.3%,
+      linear-gradient(0deg,#33302E 22%,transparent 22%) 66.6% 33.3%/33.3% 33.3%,
+      linear-gradient(45deg,transparent 40%,#33302E 40% 60%,transparent 60%) 50% 50%/100% 100%;
+    opacity:.85;}
+  .qr span{position:relative;z-index:2;background:#fff;border-radius:4px;padding:0 3px;}
+  .wrong-pill{display:flex;align-items:center;gap:7px;background:var(--paper);border:2px solid var(--ink);
+    border-radius:14px;padding:6px 10px;font-size:11.5px;text-align:left;margin-bottom:7px;position:relative;z-index:2;}
+  .wrong-pill .x{width:19px;height:19px;flex:none;background:var(--red);color:var(--ink);border:2px solid var(--ink);
+    border-radius:50%;display:grid;place-items:center;font-size:10.5px;font-weight:800;}
+  .wrong-pill.q .x{background:var(--blue);}
+  .pstars{font-size:15px;letter-spacing:3px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ===== 颜宝 symbol 库(立体圆润版 · 布局不变) ===== -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+    <radialGradient id="ybg" cx="35%" cy="28%" r="80%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="55%" stop-color="#FFF8EA"/>
+      <stop offset="100%" stop-color="#FFE7BE"/>
+    </radialGradient>
+    <symbol id="yb-base" viewBox="0 0 120 120">
+      <ellipse cx="60" cy="112" rx="35" ry="6" fill="rgba(51,48,46,.12)"/>
+      <path d="M51 32 Q44 22 46 14" fill="none" stroke="#33302E" stroke-width="3.5" stroke-linecap="round"/>
+      <path d="M69 32 Q76 22 74 14" fill="none" stroke="#33302E" stroke-width="3.5" stroke-linecap="round"/>
+      <circle cx="45.5" cy="11.5" r="4.5" fill="#FFA85C" stroke="#33302E" stroke-width="2.5"/>
+      <circle cx="74.5" cy="11.5" r="4.5" fill="#FFA85C" stroke="#33302E" stroke-width="2.5"/>
+      <ellipse cx="47" cy="109" rx="10" ry="6.5" fill="#FFE7BE" stroke="#33302E" stroke-width="3"/>
+      <ellipse cx="73" cy="109" rx="10" ry="6.5" fill="#FFE7BE" stroke="#33302E" stroke-width="3"/>
+      <circle cx="19" cy="82" r="8" fill="#FFF6E4" stroke="#33302E" stroke-width="3"/>
+      <circle cx="101" cy="82" r="8" fill="#FFF6E4" stroke="#33302E" stroke-width="3"/>
+      <ellipse cx="60" cy="69" rx="43" ry="41" fill="url(#ybg)" stroke="#33302E" stroke-width="3.5"/>
+      <ellipse cx="42" cy="48" rx="14" ry="9" fill="rgba(255,255,255,.75)" transform="rotate(-18 42 48)"/>
+      <circle cx="46.5" cy="62" r="12" fill="rgba(255,255,255,.9)" stroke="#33302E" stroke-width="3"/>
+      <circle cx="73.5" cy="62" r="12" fill="rgba(255,255,255,.9)" stroke="#33302E" stroke-width="3"/>
+      <path d="M58.5 61 Q60 57.5 61.5 61" fill="none" stroke="#33302E" stroke-width="3"/>
+      <ellipse cx="33" cy="76" rx="6.5" ry="4.5" fill="#FFD9C7"/>
+      <ellipse cx="87" cy="76" rx="6.5" ry="4.5" fill="#FFD9C7"/>
+    </symbol>
+    <symbol id="yb-happy" viewBox="0 0 120 120">
+      <use href="#yb-base"/>
+      <path d="M42 63 Q46.5 58 51 63" fill="none" stroke="#33302E" stroke-width="3" stroke-linecap="round"/>
+      <path d="M69 63 Q73.5 58 78 63" fill="none" stroke="#33302E" stroke-width="3" stroke-linecap="round"/>
+      <path d="M49 80 Q60 93 71 80 Q60 84 49 80 Z" fill="#33302E"/>
+      <path d="M53.5 81.5 Q60 85.5 66.5 81.5 Q60 88 53.5 81.5 Z" fill="#FF9A9A"/>
+      <path d="M99 40 l2.2 4.6 5 .7 -3.6 3.5 .9 5 -4.5-2.4 -4.5 2.4 .9-5 -3.6-3.5 5-.7z" fill="#FFE08A" stroke="#33302E" stroke-width="2"/>
+    </symbol>
+    <symbol id="yb-cheer" viewBox="0 0 120 120">
+      <use href="#yb-base"/>
+      <circle cx="13" cy="66" r="8" fill="#FFF6E4" stroke="#33302E" stroke-width="3"/>
+      <circle cx="107" cy="66" r="8" fill="#FFF6E4" stroke="#33302E" stroke-width="3"/>
+      <path d="M42 63 Q46.5 58 51 63" fill="none" stroke="#33302E" stroke-width="3" stroke-linecap="round"/>
+      <path d="M69 63 Q73.5 58 78 63" fill="none" stroke="#33302E" stroke-width="3" stroke-linecap="round"/>
+      <path d="M49 80 Q60 93 71 80 Q60 84 49 80 Z" fill="#33302E"/>
+      <path d="M53.5 81.5 Q60 85.5 66.5 81.5 Q60 88 53.5 81.5 Z" fill="#FF9A9A"/>
+      <rect x="12" y="30" width="7" height="7" rx="2" fill="#FF9A9A" stroke="#33302E" stroke-width="2" transform="rotate(-14 15 33)"/>
+      <rect x="98" y="26" width="7" height="7" rx="2" fill="#B9A6F5" stroke="#33302E" stroke-width="2" transform="rotate(12 101 29)"/>
+      <rect x="86" y="14" width="6" height="6" rx="2" fill="#7ED9A8" stroke="#33302E" stroke-width="2" transform="rotate(-20 89 17)"/>
+    </symbol>
+    <symbol id="yb-think" viewBox="0 0 120 120">
+      <use href="#yb-base"/>
+      <circle cx="46.5" cy="59.5" r="4.2" fill="#33302E"/>
+      <circle cx="73.5" cy="59.5" r="4.2" fill="#33302E"/>
+      <circle cx="48" cy="58" r="1.4" fill="#fff"/>
+      <circle cx="75" cy="58" r="1.4" fill="#fff"/>
+      <ellipse cx="60" cy="84" rx="5.5" ry="7" fill="#33302E"/>
+      <ellipse cx="60" cy="85.5" rx="2.6" ry="3.4" fill="#FF9A9A"/>
+      <circle cx="97" cy="34" r="4" fill="#fff" stroke="#33302E" stroke-width="2"/>
+      <circle cx="106" cy="24" r="5.5" fill="#fff" stroke="#33302E" stroke-width="2"/>
+      <text x="106" y="28.5" font-size="11" font-weight="bold" fill="#C4564F" text-anchor="middle">?</text>
+    </symbol>
+    <symbol id="yb-hug" viewBox="0 0 120 120">
+      <use href="#yb-base"/>
+      <circle cx="52" cy="92" r="7.5" fill="#FFF6E4" stroke="#33302E" stroke-width="3"/>
+      <circle cx="68" cy="92" r="7.5" fill="#FFF6E4" stroke="#33302E" stroke-width="3"/>
+      <path d="M42 63 Q46.5 67 51 63" fill="none" stroke="#33302E" stroke-width="3" stroke-linecap="round"/>
+      <path d="M69 63 Q73.5 67 78 63" fill="none" stroke="#33302E" stroke-width="3" stroke-linecap="round"/>
+      <path d="M51 81 Q60 88 69 81" fill="none" stroke="#33302E" stroke-width="3" stroke-linecap="round"/>
+      <path d="M60 22 c-3.5-7 -14-4.5 -11 4 c1.5 4.5 7 8 11 11 c4-3 9.5-6.5 11-11 c3-8.5 -7.5-11 -11-4z" fill="#FF9A9A" stroke="#33302E" stroke-width="2.5"/>
+    </symbol>
+    <symbol id="yb-sad" viewBox="0 0 120 120">
+      <use href="#yb-base"/>
+      <path d="M41 55 L51 59" stroke="#33302E" stroke-width="3" stroke-linecap="round"/>
+      <path d="M79 55 L69 59" stroke="#33302E" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="46.5" cy="64" r="4" fill="#33302E"/>
+      <circle cx="73.5" cy="64" r="4" fill="#33302E"/>
+      <path d="M52 86 Q56 82 60 86 Q64 90 68 86" fill="none" stroke="#33302E" stroke-width="3" stroke-linecap="round"/>
+      <path d="M94 44 q4 7 0 10 q-5 -3 0 -10z" fill="#B9A6F5" stroke="#33302E" stroke-width="2"/>
+    </symbol>
+  </defs></svg>
+
+  <!-- ================= 页头 ================= -->
+  <header>
+    <div class="badge hand">扩展功能 · V0.5+ 规划稿</div>
+    <h1>扩展功能 <span class="accent">7 屏</span> · 让产品具备传播力</h1>
+    <p class="sub">关卡地图(L1)· 错题本(E2)· 间隔重复(E3)· 复盘报告(L9/E4)· 分享海报(L5/E1)· 扫码挑战 | 布局不变 · 黏土风配色</p>
+  </header>
+
+  <div class="grid">
+
+  <!-- ============ EX-1 关卡地图 ============ -->
+  <div class="cell">
+    <div class="phone"><div class="notch"><i></i></div>
+      <div class="screen">
+        <div class="appbar"><div class="back">←</div><div class="tt">学习地图</div><div class="act">🏆</div></div>
+        <div class="card" style="padding:12px 14px;display:flex;gap:10px;align-items:center;">
+          <span style="font-size:20px;">🗺️</span>
+          <div style="flex:1;">
+            <b style="font-size:13.5px;">行测 · 资料分析</b>
+            <div style="font-size:10.5px;color:var(--ink-soft);margin-top:2px;">共 3 关 · 已通过 2 关 · 拿到 6 星中的 5 星</div>
+          </div>
+        </div>
+
+        <div class="map-wrap">
+          <svg class="map-svg" viewBox="0 0 330 470" preserveAspectRatio="none">
+            <path d="M165 430 C 60 400, 60 340, 165 315 C 270 290, 270 230, 165 205 C 60 180, 60 120, 165 92"
+              fill="none" stroke="#33302E" stroke-width="3.5" stroke-dasharray="1 12" stroke-linecap="round" opacity=".3"/>
+            <path d="M165 430 C 60 400, 60 340, 165 315" fill="none" stroke="#7ED9A8" stroke-width="3.5"
+              stroke-dasharray="1 12" stroke-linecap="round"/>
+          </svg>
+
+          <div class="node lock" style="top:8px;left:50%;transform:translateX(-50%);">
+            <span class="n-ic">🎁</span><span class="n-tt">通关礼</span>
+          </div>
+          <div class="node now" style="top:172px;left:calc(50% + 76px);">
+            <span class="n-ic">⚔️</span><span class="n-tt">第 3 关</span>
+            <span class="n-stars">综合应用 · 2/5</span>
+            <svg class="yb-flag"><use href="#yb-cheer"/></svg>
+          </div>
+          <div class="node done" style="top:282px;left:calc(50% - 110px);">
+            <span class="n-ic">📗</span><span class="n-tt">第 2 关</span>
+            <span class="n-stars">⭐⭐⭐</span>
+          </div>
+          <div class="node done" style="top:396px;left:50%;transform:translateX(-50%);">
+            <span class="n-ic">📘</span><span class="n-tt">第 1 关</span>
+            <span class="n-stars">⭐⭐⭐</span>
+          </div>
+        </div>
+
+        <div class="card" style="background:var(--sun-tint);padding:10px 13px;display:flex;gap:8px;align-items:center;">
+          <span>💡</span><span style="font-size:11px;color:#8A7433;line-height:1.7;">节点状态:已通过(薄荷绿)/ 进行中(暖橙,脉动)/ 未解锁(灰虚线);点击已解锁节点可重刷那一关</span>
+        </div>
+      </div>
+    </div>
+    <div class="cap"><b><span class="pno">EX-1</span>关卡地图(L1 · V0.5)</b><span>SVG 蜿蜒路径 + 绝对定位节点;进行中节点站庆祝颜宝,进度一眼可见</span></div>
+  </div>
+
+  <!-- ============ EX-2 错题本 ============ -->
+  <div class="cell">
+    <div class="phone"><div class="notch"><i></i></div>
+      <div class="screen">
+        <div class="appbar"><div class="back">←</div><div class="tt">错题本</div><div class="act">🔍</div></div>
+        <div class="card" style="display:flex;gap:0;padding:0;overflow:hidden;margin-bottom:13px;">
+          <div style="flex:1;text-align:center;padding:13px 4px;background:var(--sun-tint);">
+            <div class="hand" style="font-size:24px;color:var(--sun-deep);">7</div>
+            <div style="font-size:10.5px;color:var(--ink-soft);">今日待复习</div>
+          </div>
+          <div style="flex:1;text-align:center;padding:13px 4px;border-left:2px solid var(--ink);">
+            <div class="hand" style="font-size:24px;">12</div>
+            <div style="font-size:10.5px;color:var(--ink-soft);">累计错题</div>
+          </div>
+          <div style="flex:1;text-align:center;padding:13px 4px;border-left:2px solid var(--ink);">
+            <div class="hand" style="font-size:24px;color:var(--green-i);">5</div>
+            <div style="font-size:10.5px;color:var(--ink-soft);">已掌握</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:12px;">
+          <span class="tag">全部 12</span><span class="tag red">待复习 7</span><span class="tag green">已掌握 5</span>
+        </div>
+
+        <div class="card" style="padding:12px 13px;margin-bottom:10px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <span class="tag" style="font-size:10px;">增长率与增长量</span>
+            <span style="font-size:10.5px;color:var(--red-i);font-weight:800;">✗ 错 2 次 · 明天复习</span>
+          </div>
+          <p style="font-size:12.5px;line-height:1.8;">已知现期量 1200 亿元、同比增长 20%,基期量为?</p>
+          <div style="display:flex;align-items:center;gap:9px;margin-top:8px;">
+            <div class="track" style="flex:1;height:11px;box-shadow:none;"><div class="fill" style="width:40%;background:repeating-linear-gradient(45deg,var(--red) 0 8px,#FFB3B6 8px 16px);"></div></div>
+            <span style="font-size:10.5px;color:var(--ink-soft);flex:none;">掌握度 40</span>
+            <span class="tag green" style="flex:none;font-size:10.5px;">重练 ▶</span>
+          </div>
+        </div>
+
+        <div class="card" style="padding:12px 13px;margin-bottom:10px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <span class="tag" style="font-size:10px;">行政复议范围</span>
+            <span style="font-size:10.5px;color:var(--sun-deep);font-weight:800;">✗ 错 1 次 · 3 天后</span>
+          </div>
+          <p style="font-size:12.5px;line-height:1.8;">下列哪些事项不能申请行政复议?(多选)</p>
+          <div style="display:flex;align-items:center;gap:9px;margin-top:8px;">
+            <div class="track" style="flex:1;height:11px;box-shadow:none;"><div class="fill" style="width:60%;"></div></div>
+            <span style="font-size:10.5px;color:var(--ink-soft);flex:none;">掌握度 60</span>
+            <span class="tag green" style="flex:none;font-size:10.5px;">重练 ▶</span>
+          </div>
+        </div>
+
+        <div class="card" style="padding:12px 13px;opacity:.75;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <span class="tag" style="font-size:10px;">二分查找复杂度</span>
+            <span style="font-size:10.5px;color:var(--green-i);font-weight:800;">✓ 已掌握</span>
+          </div>
+          <p style="font-size:12.5px;line-height:1.8;">有序数组长度 n,二分查找最坏时间复杂度是?</p>
+          <div style="display:flex;align-items:center;gap:9px;margin-top:8px;">
+            <div class="track" style="flex:1;height:11px;box-shadow:none;"><div class="fill" style="width:100%;background:repeating-linear-gradient(45deg,var(--green) 0 8px,#A7E6BC 8px 16px);"></div></div>
+            <span style="font-size:10.5px;color:var(--ink-soft);flex:none;">100</span>
+            <span class="tag" style="flex:none;font-size:10.5px;">再练 ▶</span>
+          </div>
+        </div>
+
+        <div class="spacer"></div>
+        <div class="btn-main hand">▶ 一键重练今日 7 题</div>
+        <p class="note-line" style="margin-top:8px;">复习调度:答对 +1 间隔(1/3/7/15/30 天),答错重置回 1 天(PRD L4)</p>
+      </div>
+    </div>
+    <div class="cap"><b><span class="pno">EX-2</span>错题本(E2)+ 间隔重复(E3)</b><span>三格统计 + 筛选贴纸 + 掌握度条 + 下次复习时间 + 一键重练</span></div>
+  </div>
+
+  <!-- ============ EX-3 今日复习 ============ -->
+  <div class="cell">
+    <div class="phone"><div class="notch"><i></i></div>
+      <div class="screen">
+        <div class="appbar"><div class="back">←</div>
+          <div style="flex:1;text-align:center;"><b style="font-size:14.5px;">今日复习 · 3/7</b>
+            <div style="font-size:10.5px;color:var(--ink-soft);">来自「行测 · 资料分析」的错题</div></div>
+          <div style="width:34px;"></div>
+        </div>
+        <div class="track"><div class="fill" style="width:43%;"></div></div>
+        <div class="card" style="margin-top:13px;background:var(--blue-soft);border-color:var(--ink);
+          display:flex;gap:8px;align-items:center;padding:10px 13px;">
+          <span>🔔</span>
+          <span style="font-size:11px;color:#5C4A8A;line-height:1.7;"><b>复习模式</b>:只出现到期的错题,结果不计入学习统计,答对后按间隔表安排下次复习</span>
+        </div>
+        <div class="card" style="margin-top:12px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;">
+            <span class="tag red" style="font-size:10px;">曾错 2 次</span>
+            <span style="font-size:11px;color:var(--ink-soft);">难度 ★★☆☆☆</span>
+          </div>
+          <p style="font-size:14px;line-height:1.9;font-weight:600;">已知现期量 1200 亿元,同比增长 20%,则基期量为:</p>
+        </div>
+        <div style="margin-top:13px;">
+          <div class="opt"><span class="key">A</span>960 亿元</div>
+          <div class="opt sel"><span class="key">B</span>1000 亿元<span style="position:absolute;top:-9px;right:10px;font-size:10px;background:var(--sun-soft);border:2px solid var(--ink);border-radius:999px;padding:0 7px;font-weight:800;">已选</span></div>
+          <div class="opt"><span class="key">C</span>1440 亿元</div>
+          <div class="opt"><span class="key">D</span>1240 亿元</div>
+        </div>
+        <div class="spacer"></div>
+        <div class="bubble-wrap">
+          <div class="bubble-who"><div class="yb-mini"><svg><use href="#yb-hug"/></svg></div><span>颜宝悄悄话</span></div>
+          <div class="bubble" style="background:var(--sun-tint);"><i class="tail"></i>
+            <span>上次的陷阱:把"增长 20%"误算成"乘 0.8"。这次先想想:<b>基期 = 现期 ÷ (1 + 增长率)</b>。</span></div>
+        </div>
+        <div class="btn-main hand" style="margin-top:12px;">提 交 答 案</div>
+        <div style="display:flex;justify-content:space-between;margin-top:9px;">
+          <span class="ai-mark">内容由 AI 生成</span>
+          <span class="note-line" style="margin:0;">答对 → 下次复习在 3 天后</span>
+        </div>
+      </div>
+    </div>
+    <div class="cap"><b><span class="pno">EX-3</span>今日复习模式(E3)</b><span>首页「待复习 N 题」入口进入;含苏格拉底式引导语(L3),不污染正常统计</span></div>
+  </div>
+
+  <!-- ============ EX-4 复盘报告 ============ -->
+  <div class="cell">
+    <div class="phone"><div class="notch"><i></i></div>
+      <div class="screen">
+        <div class="appbar"><div class="back">←</div><div class="tt">复盘报告</div><div class="act">↗</div></div>
+        <div class="card" style="padding:13px;margin-bottom:12px;">
+          <b style="font-size:13.5px;">📡 知识点掌握度雷达</b>
+          <div class="radar-wrap" style="margin-top:6px;">
+            <svg width="160" height="160" viewBox="0 0 160 160" style="flex:none;">
+              <g stroke="#E4DCD2" fill="none" stroke-width="1.5">
+                <polygon points="80,20 137.1,61.5 115.3,128.5 44.7,128.5 22.9,61.5"/>
+                <polygon points="80,40 118,67.6 103.5,112.4 56.5,112.4 42,67.6"/>
+                <polygon points="80,60 99,73.8 91.8,96.2 68.2,96.2 61,73.8"/>
+                <line x1="80" y1="80" x2="80" y2="20"/><line x1="80" y1="80" x2="137.1" y2="61.5"/>
+                <line x1="80" y1="80" x2="115.3" y2="128.5"/><line x1="80" y1="80" x2="44.7" y2="128.5"/>
+                <line x1="80" y1="80" x2="22.9" y2="61.5"/>
+              </g>
+              <polygon points="80,32 131.4,63.3 99.4,106.7 55.3,114 37.2,66.1"
+                fill="rgba(255,168,92,.35)" stroke="#EE9247" stroke-width="3" stroke-linejoin="round"/>
+              <circle cx="80" cy="32" r="3.5" fill="#EE9247" stroke="#33302E" stroke-width="1.5"/>
+              <circle cx="131.4" cy="63.3" r="3.5" fill="#EE9247" stroke="#33302E" stroke-width="1.5"/>
+              <circle cx="99.4" cy="106.7" r="3.5" fill="#EE9247" stroke="#33302E" stroke-width="1.5"/>
+              <circle cx="55.3" cy="114" r="3.5" fill="#FF9A9A" stroke="#33302E" stroke-width="1.5"/>
+              <circle cx="37.2" cy="66.1" r="3.5" fill="#EE9247" stroke="#33302E" stroke-width="1.5"/>
+              <text x="80" y="12" font-size="9" text-anchor="middle" fill="#33302E" font-weight="bold">概念理解</text>
+              <text x="147" y="58" font-size="9" text-anchor="middle" fill="#33302E" font-weight="bold">公式应用</text>
+              <text x="122" y="143" font-size="9" text-anchor="middle" fill="#33302E" font-weight="bold">审题细心</text>
+              <text x="38" y="143" font-size="9" text-anchor="middle" fill="#33302E" font-weight="bold">速度</text>
+              <text x="13" y="58" font-size="9" text-anchor="middle" fill="#33302E" font-weight="bold">稳定性</text>
+            </svg>
+            <div style="font-size:11px;color:var(--ink-soft);line-height:2.1;">
+              <span><i class="legend-dot" style="background:rgba(255,168,92,.35);"></i>当前掌握度</span><br>
+              综合得分 <b style="color:var(--sun-deep);font-size:13px;">72</b><br>
+              最强:公式应用 90<br>
+              最弱:<b style="color:var(--red-i);">审题细心 55</b>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="padding:13px;margin-bottom:12px;">
+          <b style="font-size:13.5px;">📈 正确率趋势(近 5 次)</b>
+          <svg width="100%" height="86" viewBox="0 0 300 86" style="margin-top:4px;">
+            <line x1="8" y1="70" x2="292" y2="70" stroke="#E4DCD2" stroke-width="1.5" stroke-dasharray="4 4"/>
+            <polyline points="20,58 85,46 150,52 215,32 285,22" fill="none" stroke="#EE9247" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="20" cy="58" r="4" fill="#fff" stroke="#EE9247" stroke-width="3"/>
+            <circle cx="85" cy="46" r="4" fill="#fff" stroke="#EE9247" stroke-width="3"/>
+            <circle cx="150" cy="52" r="4" fill="#fff" stroke="#EE9247" stroke-width="3"/>
+            <circle cx="215" cy="32" r="4" fill="#fff" stroke="#EE9247" stroke-width="3"/>
+            <circle cx="285" cy="22" r="4.5" fill="#7ED9A8" stroke="#33302E" stroke-width="2"/>
+            <text x="283" y="10" font-size="10" text-anchor="end" fill="#2A7D57" font-weight="bold">93%</text>
+            <text x="20" y="82" font-size="8.5" fill="#8A8078">9/01</text>
+            <text x="150" y="82" font-size="8.5" fill="#8A8078" text-anchor="middle">9/08</text>
+            <text x="290" y="82" font-size="8.5" fill="#8A8078" text-anchor="end">9/15</text>
+          </svg>
+        </div>
+
+        <b style="font-size:13.5px;">🔎 错误模式识别</b>
+        <div style="margin-top:8px;">
+          <div class="em-chip" style="background:var(--red-soft);">
+            <span style="font-size:16px;">🧠</span>
+            <div><b>概念性错误</b><div style="font-size:10.5px;color:var(--ink-soft);">同一知识点反复答错,需要重学</div></div>
+            <span class="n" style="color:var(--red-i);">×2</span>
+          </div>
+          <div class="em-chip">
+            <span style="font-size:16px;">📎</span>
+            <div><b>细节性错误</b><div style="font-size:10.5px;color:var(--ink-soft);">概念懂但记忆不准,需要强化</div></div>
+            <span class="n" style="color:var(--sun-deep);">×1</span>
+          </div>
+          <div class="em-chip">
+            <span style="font-size:16px;">💨</span>
+            <div><b>粗心性错误</b><div style="font-size:10.5px;color:var(--ink-soft);">用时过短答错,审题不仔细</div></div>
+            <span class="n">×1</span>
+          </div>
+        </div>
+        <div class="spacer"></div>
+        <div class="bubble-wrap">
+          <div class="bubble-who"><div class="yb-mini"><svg><use href="#yb-think"/></svg></div><span>颜宝的行动建议</span></div>
+          <div class="bubble" style="background:var(--sun-tint);"><i class="tail"></i>
+            <span>趋势在涨,很棒!本周重点:把「行政复议范围」重学一遍(概念性错误 ×2),再用 7 道复习题巩固细节。</span></div>
+        </div>
+        <div style="margin-top:9px;"><span class="ai-mark">报告由规则模板生成 · 内容由 AI 生成</span></div>
+      </div>
+    </div>
+    <div class="cap"><b><span class="pno">EX-4</span>可解释复盘报告(L9 / E4)</b><span>雷达图 + 趋势折线 + 错误模式分类(概念/细节/粗心)+ 规则化建议</span></div>
+  </div>
+
+  <!-- ============ EX-5 海报 · 成果型 ============ -->
+  <div class="cell">
+    <div class="phone"><div class="notch"><i></i></div>
+      <div class="screen" style="background:rgba(51,48,46,.05);">
+        <div class="appbar"><div class="back">←</div><div class="tt">分享战报</div><div style="width:34px;"></div></div>
+        <div class="poster">
+          <span class="p-tag hand">闯关战报</span>
+          <div style="position:relative;z-index:2;margin-top:10px;">
+            <div style="font-size:13px;font-weight:800;">我用 8 分钟搞懂了</div>
+            <div class="hand" style="font-size:21px;color:var(--red-i);margin:2px 0 4px;">「货币政策三大工具」</div>
+            <svg style="width:64px;height:64px;vertical-align:middle;filter:drop-shadow(0 2px 0 rgba(51,48,46,.2));"><use href="#yb-cheer"/></svg>
+            <div class="p-num">86<span style="font-size:24px;">%</span></div>
+            <div class="pstars" style="color:var(--blue);text-shadow:0 1px 0 rgba(51,48,46,.4);">⭐⭐⭐</div>
+            <div style="font-size:10px;color:var(--ink-soft);margin-top:2px;">答对 13/15 · 击败 82% 的学习者</div>
+          </div>
+          <div style="text-align:left;margin:12px 4px 4px;position:relative;z-index:2;">
+            <div style="font-size:10.5px;font-weight:800;margin-bottom:6px;">🌱 我最容易搞错的 3 个点:</div>
+            <div class="wrong-pill"><span class="x">1</span>把"增长 20%"误算成"乘 0.8"</div>
+            <div class="wrong-pill"><span class="x">2</span>准备金率由央行而非商业银行决定</div>
+            <div class="wrong-pill"><span class="x">3</span>再贴现率也是货币政策工具</div>
+          </div>
+          <div class="qr"><span>小程序码</span></div>
+          <div style="font-size:9.5px;color:var(--ink-soft);position:relative;z-index:2;">扫码挑战同一套题 · 颜宝出品 🥚</div>
+        </div>
+        <div class="spacer"></div>
+        <div class="btn-row">
+          <div class="btn-sub">💾 保存相册</div>
+          <div class="btn-main hand" style="letter-spacing:2px;">分享好友</div>
+        </div>
+        <p class="note-line" style="margin-top:8px;">Canvas 2D 端内绘制 · 海报强调"知识"而非分数(PRD L5 强设计)</p>
+      </div>
+    </div>
+    <div class="cap"><b><span class="pno">EX-5</span>分享海报 · 成果型(L5 / E1)</b><span>主题 + 正确率 + 星级 + 3 个易错点 + 小程序码,社交货币设计</span></div>
+  </div>
+
+  <!-- ============ EX-6 海报 · 挑战型 ============ -->
+  <div class="cell">
+    <div class="phone"><div class="notch"><i></i></div>
+      <div class="screen" style="background:rgba(51,48,46,.05);">
+        <div class="appbar"><div class="back">←</div><div class="tt">发起挑战</div><div style="width:34px;"></div></div>
+        <div class="poster" style="background:linear-gradient(160deg,#FFFFFF 0%,#FFF2E6 55%,#FFE8D6 100%);">
+          <span class="p-tag alt hand">挑战帖</span>
+          <div style="position:relative;z-index:2;margin-top:10px;">
+            <div style="display:flex;justify-content:center;align-items:center;gap:8px;">
+              <svg class="avatar" style="width:34px;height:34px;"><use href="#yb-happy"/></svg>
+              <b style="font-size:13px;">学习者</b>
+              <span style="font-size:11px;color:var(--ink-soft);">向你发起挑战</span>
+            </div>
+            <div class="hand" style="font-size:20px;color:var(--ink);margin:6px 0 2px;">「公基 · 法律常识」</div>
+            <div style="font-size:11px;color:var(--ink-soft);">同一套题 · 15 道 · 约 10 分钟</div>
+          </div>
+          <div style="text-align:left;margin:12px 4px 4px;position:relative;z-index:2;">
+            <div style="font-size:10.5px;font-weight:800;margin-bottom:6px;">👀 先看看这 3 道:</div>
+            <div class="wrong-pill q"><span class="x">Q</span>行政复议的决定期限是多久?</div>
+            <div class="wrong-pill q"><span class="x">Q</span>行政诉讼中被告通常是?</div>
+            <div class="wrong-pill q"><span class="x">Q</span>哪些行为属于行政强制措施?</div>
+          </div>
+          <div class="qr"><span>小程序码</span></div>
+          <div class="hand" style="font-size:14px;color:var(--red-i);position:relative;z-index:2;">看看你能对几道 😏</div>
+          <div style="font-size:9.5px;color:var(--ink-soft);position:relative;z-index:2;margin-top:2px;">扫码直接进入同一套题 · 颜宝出品 🥚</div>
+        </div>
+        <div class="spacer"></div>
+        <div class="btn-row">
+          <div class="btn-sub">💾 保存相册</div>
+          <div class="btn-main hand" style="letter-spacing:2px;">分享到群聊</div>
+        </div>
+        <p class="note-line" style="margin-top:8px;">小程序码携带 outline_id → 好友扫码直接挑战同一套题(裂变核心)</p>
+      </div>
+    </div>
+    <div class="cap"><b><span class="pno">EX-6</span>分享海报 · 挑战型(L5)</b><span>把"炫耀"变"邀请":题目预告 + 小程序码带参,好友一键进入挑战</span></div>
+  </div>
+
+  <!-- ============ EX-7 扫码挑战落地 ============ -->
+  <div class="cell">
+    <div class="phone"><div class="notch"><i></i></div>
+      <div class="screen" style="text-align:center;">
+        <div style="margin-top:20px;">
+          <svg style="width:140px;height:140px;filter:drop-shadow(0 2px 0 rgba(51,48,46,.2));"><use href="#yb-cheer"/></svg>
+        </div>
+        <div class="hand" style="font-size:19px;margin-top:8px;">学习者 邀请你挑战!</div>
+        <p class="note-line" style="margin-top:4px;">接受挑战,和 TA 答同一套题,比比谁更强</p>
+
+        <div class="card" style="margin:16px 6px;padding:16px;text-align:left;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <b style="font-size:15px;">⚖️ 公基 · 法律常识</b>
+            <span class="tag">15 题</span>
+          </div>
+          <div style="font-size:11.5px;color:var(--ink-soft);line-height:2;">
+            · 3 个关卡 · 每关 5 题<br>
+            · 单选 / 多选 / 判断 混合<br>
+            · 预计用时 10 分钟
+          </div>
+          <div class="divider-dash" style="margin:12px 0;"></div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;">
+            <span>发起人成绩</span><b style="color:var(--sun-deep);">⭐⭐ 正确率 78%</b>
+          </div>
+        </div>
+
+        <div style="margin:0 6px;">
+          <div class="btn-main hand">⚡ 接受挑战</div>
+          <div class="btn-sub" style="margin-top:12px;color:var(--ink-soft);">先逛逛,我自己出题玩</div>
+        </div>
+        <div class="spacer"></div>
+        <div class="card" style="background:var(--sun-tint);padding:10px 13px;display:flex;gap:8px;align-items:center;">
+          <span>🥚</span><span style="font-size:11px;color:#8A7433;line-height:1.7;">你也可以粘贴自己的笔记,生成专属闯关关卡</span>
+        </div>
+      </div>
+    </div>
+    <div class="cap"><b><span class="pno">EX-7</span>扫码挑战落地页(L5 裂变闭环)</b><span>好友扫码进入:挑战信息 + 发起人成绩 + 双出口(接受 / 自己玩)</span></div>
+  </div>
+
+  </div><!-- /grid -->
+
+  <footer style="text-align:center;margin-top:64px;color:var(--ink-soft);font-size:12.5px;line-height:2;">
+    <span class="hand" style="font-size:14px;color:var(--ink);">扩展功能 7 屏完 · V0.5 传播力组合拳</span><br>
+    AI 闯关学习小程序 · UI 原型 | 依据《产品需求文档》v1.1 第 3/4 章 | 布局原版 · 风格:漫画黏土风(治愈向) | 2026-09-15
+  </footer>
+
+</div>
+</body>
+</html>

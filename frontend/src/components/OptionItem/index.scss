@@ -1,0 +1,117 @@
+.option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-sizing: border-box;
+  border: $bw solid $ink;
+  border-radius: $r-option;
+  background: $card;
+  padding: 11px 12px;
+  box-shadow: $hard;
+  transition: transform $t-press $ease-bounce, box-shadow $t-press ease-out;
+}
+
+.option-key {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  box-sizing: border-box;
+  border: 2px solid $ink;
+  border-radius: 50%;
+  background: $card;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 20px;
+  text-align: center;
+}
+
+.option-text {
+  flex: 1;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.option-tail {
+  flex: none;
+  border: 2px solid $ink;
+  border-radius: $r-pill;
+  background: $card;
+  padding: 1px 7px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+/* 已选中：暖黄底 + 描边加粗 + 下沉 2px */
+.option-picked {
+  background: $yellow;
+  border-width: 3.5px;
+  transform: translateY(2px);
+  box-shadow: 0 0 0 $ink;
+}
+
+/* 答对 */
+.option-right {
+  background: $mint;
+}
+
+/* 答错（自己选的） */
+.option-wrong {
+  background: $coral;
+}
+
+/* 答错时高亮正确答案 */
+.option-right-answer {
+  background: $card;
+  box-shadow: inset 0 0 0 2px $mint, $hard;
+}
+
+/* 其余选项：降透明 + 虚线 */
+.option-dim {
+  opacity: 0.45;
+  border-style: dashed;
+  box-shadow: none;
+}
+
+.option-disabled {
+  opacity: 0.5;
+}
+
+/* 答错轻晃：不超过 300ms，只晃一次 */
+@keyframes option-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-5px);
+  }
+  75% {
+    transform: translateX(5px);
+  }
+}
+
+.option-shake {
+  animation: option-shake 280ms ease-in-out 2;
+}
+
+/* 判断题：两大块 ✔/✘，触控区更大 */
+.option-judge {
+  flex: 1;
+  flex-direction: column;
+  gap: 6px;
+  padding: 18px 10px;
+}
+
+.option-judge-key {
+  font-size: 19px;
+  font-weight: 800;
+}
+
+.option-judge-text {
+  font-size: 12px;
+}
+
+.option-row {
+  display: flex;
+  gap: 11px;
+}

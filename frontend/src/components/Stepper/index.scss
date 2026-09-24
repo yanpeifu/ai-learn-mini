@@ -1,0 +1,19 @@
+.stepper {
+  display: flex;
+  justify-content: center;
+  gap: 7px;
+}
+
+.stepper-item {
+  border: 2px solid $ink;
+  border-radius: $r-pill;
+  background: $card;
+  padding: 1px 9px;
+  font-size: 10.5px;
+  color: $ink;
+}
+
+.stepper-on {
+  background: $yellow;
+  font-weight: 700;
+}

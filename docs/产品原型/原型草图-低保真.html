@@ -1,0 +1,540 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>原型草图（低保真）· AI 闯关学习小程序</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 40px 24px 96px;
+    font-family: "PingFang SC", "HarmonyOS Sans SC", "MiSans", "Microsoft YaHei", sans-serif;
+    background: #f4f4f5; color: #27272a; line-height: 1.6;
+  }
+  .wrap { max-width: 1400px; margin: 0 auto; }
+  h1 { font-size: 26px; margin: 0 0 6px; }
+  .sub { color: #71717a; font-size: 14px; margin-bottom: 28px; }
+  .note {
+    background: #fff; border: 1px dashed #a1a1aa; border-radius: 10px;
+    padding: 14px 18px; font-size: 13px; color: #52525b; margin-bottom: 36px;
+  }
+  .note b { color: #18181b; }
+  h2 {
+    font-size: 16px; margin: 44px 0 16px; padding-bottom: 8px;
+    border-bottom: 2px solid #d4d4d8; letter-spacing: .5px;
+  }
+  h2:first-of-type { margin-top: 0; }
+
+  /* ---------- 风格速览条 ---------- */
+  .swatches { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 8px; }
+  .sw { width: 118px; }
+  .sw .chip {
+    height: 52px; border-radius: 10px; border: 2.5px solid #2b2b2b;
+    box-shadow: 0 3px 0 #2b2b2b; margin-bottom: 6px;
+  }
+  .sw .nm { font-size: 12px; font-weight: 600; }
+  .sw .hx { font-size: 11px; color: #71717a; font-family: ui-monospace, Consolas, monospace; }
+  .rules { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+  .rule {
+    background: #fff; border: 1px solid #d4d4d8; border-radius: 8px;
+    padding: 8px 12px; font-size: 12px; color: #3f3f46;
+  }
+
+  /* ---------- 网格 ---------- */
+  .grid {
+    display: grid; gap: 30px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  @media (max-width: 1180px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 760px)  { .grid { grid-template-columns: 1fr; } }
+
+  /* ---------- 手机外框 ---------- */
+  .screen { margin: 0; }
+  .phone {
+    aspect-ratio: 375 / 700;
+    border: 2px solid #a1a1aa; border-radius: 20px;
+    background: #fff; overflow: hidden;
+    display: flex; flex-direction: column;
+    font-size: 11px; color: #52525b;
+  }
+  .cap { margin-top: 10px; font-size: 13px; }
+  .cap b { color: #18181b; }
+  .cap span { display: block; color: #71717a; font-size: 12px; }
+
+  /* 状态栏 / 导航 / 底部 */
+  .sbar {
+    height: 22px; display: flex; align-items: center; justify-content: space-between;
+    padding: 0 12px; font-size: 9px; color: #a1a1aa; border-bottom: 1px dashed #e4e4e7;
+    flex: none;
+  }
+  .nav {
+    height: 40px; display: flex; align-items: center; gap: 8px;
+    padding: 0 12px; border-bottom: 1px dashed #e4e4e7; flex: none;
+    font-weight: 600; color: #3f3f46;
+  }
+  .nav .back { color: #a1a1aa; }
+  .tab {
+    margin-top: auto; height: 48px; display: flex; border-top: 1px dashed #e4e4e7;
+    flex: none;
+  }
+  .tab div {
+    flex: 1; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: 3px; color: #a1a1aa; font-size: 10px;
+  }
+  .tab div.on { color: #3f3f46; font-weight: 600; }
+  .tab .dot { width: 16px; height: 16px; border: 1.5px solid currentColor; border-radius: 4px; }
+
+  .body { padding: 12px; flex: 1; overflow: hidden; display: flex; flex-direction: column; gap: 10px; }
+
+  /* ---------- 线框元件 ---------- */
+  .ln { height: 9px; background: #e4e4e7; border-radius: 3px; }
+  .ln.w40 { width: 40%; } .ln.w55 { width: 55%; } .ln.w70 { width: 70%; }
+  .ln.w85 { width: 85%; } .ln.w100 { width: 100%; }
+  .ln.h14 { height: 14px; }
+  .ln.dark { background: #d4d4d8; }
+
+  .box {
+    border: 1.5px dashed #c4c4c8; border-radius: 10px; padding: 10px;
+    display: flex; flex-direction: column; gap: 7px; background: #fafafa;
+  }
+  .box.solid { border-style: solid; border-color: #a1a1aa; background: #fff; }
+  .box.grow { flex: 1; }
+  .box.center { align-items: center; justify-content: center; text-align: center; }
+  .box.row { flex-direction: row; align-items: center; }
+  .lbl { font-size: 10px; color: #a1a1aa; letter-spacing: .3px; }
+  .lbl.b { color: #52525b; font-weight: 600; }
+
+  .btn {
+    border: 1.5px solid #71717a; border-radius: 10px; padding: 11px;
+    text-align: center; font-weight: 600; color: #3f3f46; background: #fff;
+  }
+  .btn.fill { background: #d4d4d8; border-color: #3f3f46; }
+  .btn.sm { padding: 7px 12px; font-size: 10px; font-weight: 500; }
+  .btnrow { display: flex; gap: 8px; }
+  .btnrow > * { flex: 1; }
+
+  .chips { display: flex; gap: 7px; flex-wrap: wrap; }
+  .chip2 {
+    border: 1.5px dashed #c4c4c8; border-radius: 8px; padding: 7px 10px;
+    font-size: 10px; color: #71717a; background: #fafafa; white-space: nowrap;
+  }
+  .tplrow { display: flex; gap: 7px; overflow: hidden; }
+  .tpl {
+    flex: none; width: 62px; height: 54px; border: 1.5px dashed #c4c4c8;
+    border-radius: 10px; background: #fafafa;
+    display: flex; align-items: flex-end; justify-content: center;
+    font-size: 8px; color: #a1a1aa; padding-bottom: 4px;
+  }
+
+  .opt {
+    border: 1.5px solid #b4b4b8; border-radius: 9px; padding: 9px 10px;
+    display: flex; align-items: center; gap: 9px; background: #fff;
+  }
+  .opt .k {
+    width: 20px; height: 20px; border: 1.5px solid #71717a; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 700; color: #3f3f46; flex: none;
+  }
+  .opt.on { border-color: #3f3f46; background: #e4e4e7; }
+  .opt.right { border-color: #3f3f46; background: #ededed; border-style: dashed; }
+  .opt .tag {
+    margin-left: auto; font-size: 9px; border: 1px solid #a1a1aa;
+    border-radius: 5px; padding: 1px 5px; color: #52525b; flex: none;
+  }
+
+  .prog { height: 10px; border: 1.5px solid #a1a1aa; border-radius: 99px; overflow: hidden; }
+  .prog i { display: block; height: 100%; width: 60%; background: #d4d4d8; }
+
+  .stars { display: flex; gap: 8px; justify-content: center; }
+  .star { width: 30px; height: 30px; border: 1.5px solid #a1a1aa; border-radius: 8px; }
+  .star.f { background: #d4d4d8; }
+  .star.e { border-style: dashed; }
+
+  .big { font-size: 34px; font-weight: 800; color: #3f3f46; line-height: 1; }
+  .kpi { display: flex; gap: 10px; }
+  .kpi > div {
+    flex: 1; border: 1.5px dashed #c4c4c8; border-radius: 9px;
+    padding: 8px; text-align: center; background: #fafafa;
+  }
+  .kpi .v { font-size: 16px; font-weight: 700; color: #3f3f46; }
+  .kpi .t { font-size: 9px; color: #a1a1aa; }
+
+  .list { display: flex; flex-direction: column; gap: 7px; }
+  .row {
+    border: 1.5px dashed #c4c4c8; border-radius: 9px; padding: 8px 10px;
+    display: flex; align-items: center; gap: 8px; background: #fafafa;
+  }
+  .row .av { width: 22px; height: 22px; border: 1.5px solid #a1a1aa; border-radius: 50%; flex: none; }
+  .row .meta { margin-left: auto; font-size: 9px; color: #a1a1aa; }
+
+  .map { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; justify-content: center; }
+  .node {
+    width: 46px; height: 46px; border: 2px solid #a1a1aa; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; font-size: 10px; color: #52525b;
+    background: #fff;
+  }
+  .node.done { background: #d4d4d8; border-color: #3f3f46; }
+  .node.cur { border-color: #3f3f46; border-width: 3px; }
+  .node.lock { border-style: dashed; color: #a1a1aa; }
+  .link { width: 2px; height: 16px; background: #d4d4d8; }
+  .link.off { background: repeating-linear-gradient(#d4d4d8 0 4px, transparent 4px 8px); }
+
+  .pop { border: 2px solid #a1a1aa; border-radius: 16px; padding: 14px; background: #fff; }
+  .mascot {
+    width: 54px; height: 54px; border: 2px solid #a1a1aa; border-radius: 50%;
+    margin: 0 auto; display: flex; align-items: center; justify-content: center;
+    font-size: 9px; color: #a1a1aa; background: #fafafa;
+  }
+  .radar {
+    width: 130px; height: 130px; border: 1.5px solid #a1a1aa; border-radius: 50%;
+    margin: 0 auto; position: relative; background: #fafafa;
+  }
+  .radar:before, .radar:after {
+    content: ""; position: absolute; inset: 22px; border: 1px dashed #d4d4d8; border-radius: 50%;
+  }
+  .radar:after { inset: 44px; }
+  .chart { height: 68px; border: 1.5px dashed #c4c4c8; border-radius: 9px; background:
+    linear-gradient(transparent 32%, #e4e4e7 32% 33%, transparent 33%),
+    linear-gradient(transparent 65%, #e4e4e7 65% 66%, transparent 66%), #fafafa; position: relative; }
+  .chart span { position: absolute; left: 8px; bottom: 6px; font-size: 9px; color: #a1a1aa; }
+
+  .legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: 11px; color: #71717a; }
+  .legend i { display: inline-block; width: 12px; height: 12px; border: 1.5px solid #a1a1aa; border-radius: 3px; margin-right: 5px; vertical-align: -2px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>原型草图（低保真）</h1>
+  <div class="sub">AI 闯关学习小程序 · 风格：漫画黏土风 Comic Clay · 对应《产品需求文档》v1.1</div>
+
+  <div class="note">
+    <b>这是布局草图，不是最终视觉稿。</b>本页只解决"信息怎么摆放、跳转怎么走"，
+    全部用灰阶与虚线占位，<b>没有应用任何颜色、字体与插画</b>。
+    风格方向请看上方的色板速览，或《UI设计风格方案.md》。
+    确认布局与风格后，我再做高保真原型。
+  </div>
+
+  <h2>设计风格速览（仅示意方向）</h2>
+  <div class="swatches">
+    <div class="sw"><div class="chip" style="background:#FFFBF4"></div><div class="nm">纸张底</div><div class="hx">#FFFBF4</div></div>
+    <div class="sw"><div class="chip" style="background:#2B2B2B"></div><div class="nm">墨线</div><div class="hx">#2B2B2B</div></div>
+    <div class="sw"><div class="chip" style="background:#FF9F45"></div><div class="nm">暖阳橙</div><div class="hx">#FF9F45</div></div>
+    <div class="sw"><div class="chip" style="background:#6FCF97"></div><div class="nm">薄荷绿</div><div class="hx">#6FCF97</div></div>
+    <div class="sw"><div class="chip" style="background:#FF7B7B"></div><div class="nm">珊瑚红</div><div class="hx">#FF7B7B</div></div>
+    <div class="sw"><div class="chip" style="background:#A78BFA"></div><div class="nm">薰衣草紫</div><div class="hx">#A78BFA</div></div>
+    <div class="sw"><div class="chip" style="background:#FFD166"></div><div class="nm">暖黄</div><div class="hx">#FFD166</div></div>
+  </div>
+  <div class="rules">
+    <span class="rule">描边 2.5–3px 墨黑</span>
+    <span class="rule">圆角 16–24px</span>
+    <span class="rule">硬投影 0 4px 0 墨黑</span>
+    <span class="rule">按压下沉 4px、投影收为 0</span>
+    <span class="rule">四角留一点内部高光</span>
+    <span class="rule">橙底配墨黑字（不是白字）</span>
+  </div>
+
+  <h2>一 · 核心业务流程</h2>
+  <div class="grid">
+
+    <!-- P1 首页 -->
+    <figure class="screen">
+      <div class="phone">
+        <div class="sbar"><span>9:41</span><span>▮▮▮ ▮</span></div>
+        <div class="body">
+          <div class="ln h14 w70"></div>
+          <div class="lbl">今天想学点什么？</div>
+          <div class="box grow" style="min-height:96px">
+            <div class="lbl">粘贴一段笔记、讲义或任何想学的内容…</div>
+            <div class="ln w85"></div><div class="ln w55"></div>
+            <div class="lbl" style="text-align:right;width:100%">0 / 2000</div>
+          </div>
+          <div class="lbl">试试这些</div>
+          <div class="tplrow">
+            <div class="tpl">行测</div><div class="tpl">公基</div>
+            <div class="tpl">考研</div><div class="tpl">英语</div>
+            <div class="tpl">编程</div>
+          </div>
+          <div class="btn fill">开 始 生 成</div>
+          <div class="box row"><div class="ln w40"></div><div class="lbl" style="margin-left:auto">继续 ></div></div>
+          <div class="lbl">最近学习</div>
+          <div class="list">
+            <div class="row"><div class="ln w55"></div><div class="meta">91%</div></div>
+            <div class="row"><div class="ln w40"></div><div class="meta">78%</div></div>
+          </div>
+        </div>
+        <div class="tab"><div class="on"><span class="dot"></span>首页</div><div><span class="dot"></span>我的</div></div>
+      </div>
+      <figcaption class="cap"><b>P1 首页</b><span>输入区 / 模板 / 继续学习 / 最近记录</span></figcaption>
+    </figure>
+
+    <!-- P2 大纲确认 -->
+    <figure class="screen">
+      <div class="phone">
+        <div class="sbar"><span>9:41</span><span>▮▮▮ ▮</span></div>
+        <div class="nav"><span class="back">←</span> 知识大纲</div>
+        <div class="body">
+          <div class="lbl">AI 已为你梳理出 4 个知识点，可编辑或删除</div>
+          <div class="box solid"><div class="lbl b">① 货币政策的三大工具</div><div class="ln w85"></div></div>
+          <div class="box solid"><div class="lbl b">② 存款准备金率的作用</div><div class="ln w70"></div></div>
+          <div class="box solid"><div class="lbl b">③ 公开市场操作的方向</div><div class="ln w85"></div></div>
+          <div class="box solid"><div class="lbl b">④ 三大工具的对比</div><div class="ln w55"></div></div>
+          <div class="lbl" style="margin-top:auto">提示：左滑可删除，剩余不足 2 个时不可删</div>
+          <div class="btnrow">
+            <div class="btn">重新生成</div>
+            <div class="btn fill">开始闯关</div>
+          </div>
+        </div>
+      </div>
+      <figcaption class="cap"><b>P2 大纲确认页</b><span>生成中为骨架屏；支持行内编辑与左滑删除</span></figcaption>
+    </figure>
+
+    <!-- P3 答题页 -->
+    <figure class="screen">
+      <div class="phone">
+        <div class="sbar"><span>9:41</span><span>▮▮▮ ▮</span></div>
+        <div class="nav"><span class="back">←</span> 第 2 关 · 3 / 5</div>
+        <div class="body">
+          <div class="prog"><i></i></div>
+          <div class="chips"><span class="chip2">多选题</span><span class="chip2">难度 ★★☆</span></div>
+          <div class="box solid"><div class="ln w100"></div><div class="ln w85"></div><div class="ln w55"></div></div>
+          <div class="opt"><span class="k">A</span><div class="ln w70" style="flex:1"></div><span class="tag">你选的</span></div>
+          <div class="opt right"><span class="k">B</span><div class="ln w85" style="flex:1"></div><span class="tag">正确答案</span></div>
+          <div class="opt"><span class="k">C</span><div class="ln w55" style="flex:1"></div></div>
+          <div class="opt"><span class="k">D</span><div class="ln w70" style="flex:1"></div></div>
+          <div class="box grow">
+            <div class="lbl b">讲解</div>
+            <div class="ln w100"></div><div class="ln w85"></div><div class="ln w70"></div>
+          </div>
+          <div class="btn fill">下 一 题</div>
+        </div>
+      </div>
+      <figcaption class="cap"><b>P3 答题页（已提交）</b><span>答错时错误项与正确答案同时可见</span></figcaption>
+    </figure>
+
+    <!-- P4 结算页 -->
+    <figure class="screen">
+      <div class="phone">
+        <div class="sbar"><span>9:41</span><span>▮▮▮ ▮</span></div>
+        <div class="body">
+          <div class="mascot">吉祥物</div>
+          <div class="stars"><div class="star f"></div><div class="star f"></div><div class="star e"></div></div>
+          <div class="box center" style="border:none;background:transparent">
+            <div class="big">87%</div><div class="lbl">正确率</div>
+          </div>
+          <div class="kpi">
+            <div><div class="v">6:12</div><div class="t">用时</div></div>
+            <div><div class="v">13/15</div><div class="t">答对</div></div>
+          </div>
+          <div class="lbl">各知识点表现</div>
+          <div class="list">
+            <div class="row"><div class="ln w55"></div><div class="meta">100%</div></div>
+            <div class="row"><div class="ln w70"></div><div class="meta">80%</div></div>
+            <div class="row"><div class="ln w40"></div><div class="meta" style="color:#71717a">40%</div></div>
+          </div>
+          <div class="box row"><div class="ln w85"></div></div>
+          <div class="btnrow">
+            <div class="btn">再来一次</div>
+            <div class="btn fill">看学习记录</div>
+          </div>
+        </div>
+      </div>
+      <figcaption class="cap"><b>P4 结算页</b><span>星级 / 正确率 / 用时 / 知识点表现 / 建议</span></figcaption>
+    </figure>
+
+    <!-- P5 我的 -->
+    <figure class="screen">
+      <div class="phone">
+        <div class="sbar"><span>9:41</span><span>▮▮▮ ▮</span></div>
+        <div class="body">
+          <div class="box row"><div class="av" style="width:40px;height:40px"></div>
+            <div><div class="lbl b">学习者</div><div class="lbl">已学习 12 天</div></div>
+          </div>
+          <div class="kpi">
+            <div><div class="v">8</div><div class="t">学习次数</div></div>
+            <div><div class="v">126</div><div class="t">累计答题</div></div>
+          </div>
+          <div class="lbl">学习记录</div>
+          <div class="list">
+            <div class="row"><div class="ln w55"></div><div class="meta">91% · 2 天前</div></div>
+            <div class="row"><div class="ln w40"></div><div class="meta">78% · 3 天前</div></div>
+            <div class="row"><div class="ln w70"></div><div class="meta">100% · 5 天前</div></div>
+            <div class="row"><div class="ln w55"></div><div class="meta">62% · 上周</div></div>
+          </div>
+          <div class="lbl" style="margin-top:auto;text-align:center">上拉加载更多</div>
+        </div>
+        <div class="tab"><div><span class="dot"></span>首页</div><div class="on"><span class="dot"></span>我的</div></div>
+      </div>
+      <figcaption class="cap"><b>P5 我的</b><span>资料 / 数据概览 / 学习记录（分页）</span></figcaption>
+    </figure>
+
+    <!-- 说明占位 -->
+    <figure class="screen">
+      <div class="phone" style="border-style:dashed;background:#fafafa">
+        <div class="body center" style="justify-content:center;gap:14px">
+          <div class="lbl b" style="font-size:13px">核心流程到此结束</div>
+          <div class="lbl" style="max-width:220px;text-align:center;line-height:1.7">
+            这 5 个页面构成 MVP 的完整闭环：<br>输入 → 大纲 → 答题 → 结算 → 记录
+          </div>
+          <div class="chip2">下一组：扩展功能</div>
+        </div>
+      </div>
+      <figcaption class="cap"><b>小计</b><span>核心业务流程共 5 页</span></figcaption>
+    </figure>
+
+  </div>
+
+  <h2>二 · 扩展功能（V0.5 及以后）</h2>
+  <div class="grid">
+
+    <!-- P6 关卡地图 -->
+    <figure class="screen">
+      <div class="phone">
+        <div class="sbar"><span>9:41</span><span>▮▮▮ ▮</span></div>
+        <div class="nav"><span class="back">←</span> 学习地图</div>
+        <div class="body">
+          <div class="lbl">货币政策三大工具 · 共 4 关</div>
+          <div class="map">
+            <div class="node done">★★★</div><div class="link"></div>
+            <div class="node done">★★☆</div><div class="link"></div>
+            <div class="node cur">3</div><div class="link off"></div>
+            <div class="node lock">锁</div>
+          </div>
+          <div class="lbl" style="text-align:center">还剩 2 关</div>
+        </div>
+      </div>
+      <figcaption class="cap"><b>P6 关卡地图</b><span>蜿蜒路径 + 四种节点状态（V0.5）</span></figcaption>
+    </figure>
+
+    <!-- P7 苏格拉底引导 -->
+    <figure class="screen">
+      <div class="phone" style="background:#e4e4e7">
+        <div class="body" style="justify-content:center">
+          <div class="pop">
+            <div class="mascot">思考中</div>
+            <div class="lbl b" style="text-align:center;margin:8px 0">再想一下</div>
+            <div class="ln w85" style="margin:0 auto 4px"></div>
+            <div class="ln w70" style="margin:0 auto 12px"></div>
+            <div class="opt" style="margin-bottom:7px"><span class="k">A</span><div class="ln w55" style="flex:1"></div></div>
+            <div class="opt" style="margin-bottom:7px"><span class="k">B</span><div class="ln w70" style="flex:1"></div></div>
+            <div class="opt" style="margin-bottom:12px"><span class="k">C</span><div class="ln w40" style="flex:1"></div></div>
+            <div class="btn fill">确 定</div>
+            <div class="lbl" style="text-align:center;margin-top:8px">跳过，直接看讲解</div>
+          </div>
+        </div>
+      </div>
+      <figcaption class="cap"><b>P7 苏格拉底式引导</b><span>答错后先引导一次，再给完整讲解（V0.5）</span></figcaption>
+    </figure>
+
+    <!-- P8 复盘报告 -->
+    <figure class="screen">
+      <div class="phone">
+        <div class="sbar"><span>9:41</span><span>▮▮▮ ▮</span></div>
+        <div class="nav"><span class="back">←</span> 复盘报告</div>
+        <div class="body">
+          <div class="lbl">知识点掌握度</div>
+          <div class="radar"></div>
+          <div class="lbl">正确率趋势</div>
+          <div class="chart"><span>近 5 次学习</span></div>
+          <div class="lbl">错误模式</div>
+          <div class="chips">
+            <span class="chip2">概念性错误 ×2</span>
+            <span class="chip2">细节性错误 ×3</span>
+            <span class="chip2">粗心 ×1</span>
+          </div>
+          <div class="box grow"><div class="lbl b">建议</div><div class="ln w100"></div><div class="ln w85"></div></div>
+        </div>
+      </div>
+      <figcaption class="cap"><b>P8 复盘报告</b><span>雷达图 + 趋势 + 错误模式 + 行动建议（V0.5）</span></figcaption>
+    </figure>
+
+    <!-- P9 分享海报 -->
+    <figure class="screen">
+      <div class="phone">
+        <div class="sbar"><span>9:41</span><span>▮▮▮ ▮</span></div>
+        <div class="nav"><span class="back">←</span> 生成海报</div>
+        <div class="body">
+          <div class="chips"><span class="chip2">成果型</span><span class="chip2">挑战型</span></div>
+          <div class="box solid grow" style="align-items:center;justify-content:center;gap:12px">
+            <div class="mascot">吉祥物</div>
+            <div class="ln h14 w70"></div>
+            <div class="lbl">我用了 8 分钟搞懂「货币政策」</div>
+            <div class="ln w55"></div>
+            <div class="box" style="width:100%">
+              <div class="lbl b">我最容易搞错的 3 个点</div>
+              <div class="ln w85"></div><div class="ln w70"></div><div class="ln w55"></div>
+            </div>
+            <div style="width:56px;height:56px;border:1.5px dashed #a1a1aa;border-radius:8px"></div>
+            <div class="lbl">扫码挑战同一套题</div>
+          </div>
+          <div class="btnrow">
+            <div class="btn">保存到相册</div>
+            <div class="btn fill">分享给好友</div>
+          </div>
+        </div>
+      </div>
+      <figcaption class="cap"><b>P9 分享海报</b><span>成果型 / 挑战型；码带 outline_id（V0.5）</span></figcaption>
+    </figure>
+
+    <!-- P10 错题本 -->
+    <figure class="screen">
+      <div class="phone">
+        <div class="sbar"><span>9:41</span><span>▮▮▮ ▮</span></div>
+        <div class="nav"><span class="back">←</span> 今日复习</div>
+        <div class="body">
+          <div class="box solid row">
+            <div><div class="lbl b">今天有 7 道错题</div><div class="lbl">约 3 分钟</div></div>
+            <div class="btn sm fill" style="margin-left:auto">开始复习</div>
+          </div>
+          <div class="lbl">待复习</div>
+          <div class="list">
+            <div class="row"><div class="ln w70"></div><div class="meta">错 2 次</div></div>
+            <div class="row"><div class="ln w55"></div><div class="meta">错 1 次</div></div>
+            <div class="row"><div class="ln w85"></div><div class="meta">错 3 次</div></div>
+            <div class="row"><div class="ln w40"></div><div class="meta">错 1 次</div></div>
+          </div>
+          <div class="lbl" style="margin-top:auto">按遗忘曲线调度：1 / 3 / 7 / 15 / 30 天</div>
+        </div>
+      </div>
+      <figcaption class="cap"><b>P10 错题本与今日复习</b><span>间隔重复调度（V0.5）</span></figcaption>
+    </figure>
+
+    <!-- 状态页 -->
+    <figure class="screen">
+      <div class="phone">
+        <div class="sbar"><span>9:41</span><span>▮▮▮ ▮</span></div>
+        <div class="body">
+          <div class="lbl b">状态与异常</div>
+          <div class="box center" style="padding:16px">
+            <div class="mascot" style="width:40px;height:40px">空状态</div>
+            <div class="lbl">这里还空着，去闯第一关吧</div>
+            <div class="btn sm">去学习</div>
+          </div>
+          <div class="box center" style="padding:16px">
+            <div class="lbl b">生成失败</div>
+            <div class="lbl">网络打了个盹，点一下重试</div>
+            <div class="btn sm">重 试</div>
+          </div>
+          <div class="box center" style="padding:16px">
+            <div class="lbl b">生成中</div>
+            <div class="prog" style="width:100%"><i style="width:35%"></i></div>
+            <div class="lbl">正在把你的笔记拆成知识点…</div>
+          </div>
+        </div>
+      </div>
+      <figcaption class="cap"><b>状态与异常页</b><span>空状态 / 失败重试 / 加载中</span></figcaption>
+    </figure>
+
+  </div>
+
+  <h2>图例</h2>
+  <div class="legend">
+    <span><i style="background:#fafafa;border-style:dashed"></i>虚线框 = 占位区域</span>
+    <span><i style="background:#e4e4e7"></i>灰色条 = 文字占位</span>
+    <span><i style="background:#fff"></i>实线框 = 卡片/容器</span>
+    <span><i style="background:#e4e4e7;border-color:#3f3f46"></i>深色块 = 主按钮</span>
+  </div>
+
+</div>
+</body>
+</html>

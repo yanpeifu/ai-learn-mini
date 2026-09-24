@@ -1,0 +1,43 @@
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  /* 空状态是块级元素，默认撑满父容器，内容才会相对整屏居中。
+     必须同时给 box-sizing：自身（.empty-plain）有 16px 左右内边距，
+     只写 width:100% 会让实际宽度变成「父宽 + 32px」并向右溢出。 */
+  width: 100%;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.empty-dashed {
+  flex: 1;
+  box-sizing: border-box;
+  border: 2px dashed $ink;
+  border-radius: 20px;
+  padding: 20px;
+}
+
+.empty-plain {
+  padding: 24px 16px;
+}
+
+.empty-title {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.empty-desc {
+  max-width: 240px;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: $ink-2;
+}
+
+.empty-action {
+  margin-top: 4px;
+  min-width: 160px;
+  padding: 0 24px;
+}

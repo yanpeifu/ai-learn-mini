@@ -1,0 +1,163 @@
+.page-mine {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 100vh;
+  box-sizing: border-box;
+  padding: 13px 14px 24px;
+  background: $paper;
+}
+
+.profile {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  box-sizing: border-box;
+  border: $bw solid $ink;
+  border-radius: 20px;
+  background: $card;
+  padding: 13px;
+  box-shadow: $soft, $gloss;
+}
+
+.avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 52px;
+  height: 52px;
+  box-sizing: border-box;
+  border: $bw solid $ink;
+  border-radius: 50%;
+  background: $paper;
+  overflow: hidden;
+}
+
+.profile-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.profile-name {
+  display: block;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.cap {
+  display: block;
+  font-size: 11.5px;
+  color: $ink-2;
+}
+
+.sec {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: $ink-2;
+}
+
+.kpi {
+  display: flex;
+  gap: 10px;
+}
+
+.kpi-cell {
+  flex: 1;
+  box-sizing: border-box;
+  border: $bw solid $ink;
+  border-radius: 17px;
+  background: $card;
+  padding: 10px;
+  text-align: center;
+  box-shadow: $hard;
+}
+
+.kpi-value {
+  display: block;
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.kpi-label {
+  font-size: 10px;
+  color: $ink-2;
+}
+
+.record-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rec {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  box-sizing: border-box;
+  border: $bw solid $ink;
+  border-radius: 15px;
+  background: $card;
+  padding: 9px 12px;
+  box-shadow: $hard;
+}
+
+.rec-title {
+  flex: 1;
+  font-size: 12.5px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.score {
+  flex: none;
+  font-size: 12.5px;
+  font-weight: 800;
+}
+
+.score-good {
+  color: $mint-i;
+}
+
+.score-mid {
+  color: $ink-2;
+}
+
+.score-bad {
+  color: $coral-i;
+}
+
+.record-footer {
+  margin-top: 4px;
+  text-align: center;
+}
+
+.mine-empty {
+  display: flex;
+  /* 注意：必须是纵向 flex。横向 flex 会让空状态子元素收缩成「内容宽度」，
+     结果就是一块窄内容贴在左边（真机实测过）。 */
+  flex-direction: column;
+  flex: 1;
+  min-height: 220px;
+}
+
+.rec-hover {
+  transform: translateY(2px);
+  box-shadow: 0 0 0 $ink;
+}
+
+.rec-arrow {
+  flex: none;
+  font-size: 15px;
+  color: $ink-2;
+}
+
+.agreements {
+  margin-top: auto;
+  font-size: 10px;
+  color: $ink-2;
+  text-align: center;
+}

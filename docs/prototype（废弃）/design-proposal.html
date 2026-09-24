@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 闯关学习小程序 · UI 风格提案「漫画课桌」</title>
+<style>
+  :root{
+    --paper:#FFFCEF;      /* 奶油黄纸面底(更淡) */
+    --paper-2:#FFFFFA;    /* 提亮纸面 */
+    --card:#FFFFFF;       /* 卡片白 */
+    --ink:#2D2A24;        /* 深咖灰文字(加深对比) */
+    --ink-soft:#6E675C;   /* 次级文字(加深) */
+    --sun:#FFB300;        /* 主行动 · 活力黄橙 */
+    --sun-deep:#F59E0B;
+    --red:#FF5A5F;        /* 强调红(阿衰红) */
+    --green:#58C86E;      /* 答对绿(调柔) */
+    --green-soft:#E7F7EA;
+    --red-soft:#FFEBEB;
+    --blue:#4DA8DA;       /* 信息蓝 */
+    --blue-soft:#E8F4FB;
+    --peach:#FFD9C7;      /* 腮红粉 */
+    --halftone:rgba(45,42,36,.05);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{
+    background:var(--paper);
+    background-image:radial-gradient(var(--halftone) 1.2px, transparent 1.2px);
+    background-size:18px 18px;
+    color:var(--ink);
+    font-family:"PingFang SC","Microsoft YaHei","Hiragino Sans GB",sans-serif;
+    padding:32px 20px 80px;
+  }
+  .hand{font-family:"ZCOOL KuaiLe","YouYuan","Yuanti SC","Microsoft YaHei",sans-serif;}
+  .wrap{max-width:1200px;margin:0 auto;}
+
+  /* ---------- 顶部 ---------- */
+  header{text-align:center;margin-bottom:40px;}
+  .badge{
+    display:inline-block;background:var(--sun);color:#4A2E00;border:2.5px solid var(--ink);
+    border-radius:999px;padding:6px 18px;font-weight:800;font-size:13px;
+    box-shadow:2px 2px 0 rgba(45,42,36,.55);transform:rotate(-2deg);letter-spacing:1px;
+  }
+  h1{font-size:38px;margin:18px 0 8px;letter-spacing:2px;font-weight:800;}
+  h1 .accent{color:var(--red);text-shadow:2px 2px 0 rgba(62,58,51,.12);}
+  .sub{color:var(--ink-soft);font-size:15px;}
+  .sub b{color:var(--ink);}
+
+  /* ---------- 通用 section ---------- */
+  section{margin-bottom:56px;}
+  .sec-title{display:flex;align-items:center;gap:12px;margin-bottom:6px;}
+  .sec-num{
+    width:34px;height:34px;flex:none;background:var(--card);border:2.5px solid var(--ink);
+    border-radius:10px;display:grid;place-items:center;font-weight:800;
+    box-shadow:2px 2px 0 rgba(45,42,36,.55);transform:rotate(-3deg);
+  }
+  .sec-title h2{font-size:22px;letter-spacing:1px;font-weight:800;}
+  .sec-desc{color:var(--ink-soft);font-size:14px;margin:6px 0 22px 46px;}
+
+  /* ---------- 贴纸卡片通用 ---------- */
+  .sticker{
+    background:var(--card);border:2px solid var(--ink);border-radius:16px;
+    box-shadow:2px 3px 0 rgba(45,42,36,.16);padding:20px;
+  }
+  .rot-l{transform:rotate(-1deg);}
+  .rot-r{transform:rotate(1deg);}
+
+  /* ---------- 01 设计理念 ---------- */
+  .idea-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:22px;}
+  .idea-grid .sticker h3{font-size:17px;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+  .idea-grid .sticker p{font-size:13.5px;line-height:1.9;color:#4A453C;}
+  .idea-grid .sticker .tag{
+    display:inline-block;margin-top:12px;font-size:12px;background:var(--paper);
+    border:1.5px dashed var(--ink);border-radius:8px;padding:3px 10px;color:var(--ink-soft);
+  }
+  .emoji-chip{font-size:20px;}
+
+  /* ---------- 02 色板 ---------- */
+  .palette{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:18px;}
+  .swatch{border:2px solid var(--ink);border-radius:14px;overflow:hidden;background:var(--card);box-shadow:2px 3px 0 rgba(45,42,36,.16);}
+  .swatch .chip{height:74px;border-bottom:2px solid var(--ink);position:relative;}
+  .swatch .chip .pct{
+    position:absolute;right:8px;bottom:6px;font-size:11px;font-weight:700;
+    background:rgba(255,255,255,.85);border-radius:6px;padding:1px 7px;color:var(--ink);
+  }
+  .swatch .meta{padding:10px 12px;}
+  .swatch .meta b{display:block;font-size:13.5px;}
+  .swatch .meta span{font-size:11.5px;color:var(--ink-soft);font-family:Consolas,monospace;}
+
+  /* ---------- 03 吉祥物 ---------- */
+  .modo-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:22px;}
+  .modo-card{display:flex;flex-direction:column;align-items:center;text-align:center;}
+  .modo-card svg{width:150px;height:150px;margin:6px 0 4px;}
+  .modo-card h4{font-size:16px;margin-bottom:4px;}
+  .modo-card h4 .callout{
+    display:inline-block;background:var(--sun);border:2px solid var(--ink);border-radius:8px;
+    padding:0 8px;color:#fff;font-size:13px;margin-right:6px;box-shadow:2px 2px 0 var(--ink);
+  }
+  .modo-card p{font-size:12.5px;color:var(--ink-soft);line-height:1.8;padding:0 6px;}
+  .modo-note{
+    margin-top:22px;background:var(--paper-2);border:2px dashed var(--ink);border-radius:14px;
+    padding:16px 20px;font-size:13.5px;line-height:2;color:#4A453C;
+  }
+  .modo-note b{color:var(--red);}
+
+  /* ---------- 04 组件样例 ---------- */
+  .comp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:26px;align-items:start;}
+  .comp-cell{padding:22px;}
+  .comp-cell .label{
+    font-size:12px;color:var(--ink-soft);margin-bottom:14px;display:flex;justify-content:space-between;
+    border-bottom:1.5px dashed rgba(62,58,51,.25);padding-bottom:8px;
+  }
+  .comp-cell .label b{color:var(--ink);font-size:13px;}
+
+  /* 主按钮 */
+  .btn-main{
+    display:block;width:100%;background:var(--sun);color:#4A2E00;border:2.5px solid var(--ink);
+    border-radius:14px;padding:14px 0;font-size:17px;font-weight:800;letter-spacing:6px;text-indent:6px;
+    box-shadow:0 3px 0 rgba(45,42,36,.6);text-align:center;cursor:pointer;
+  }
+  .btn-main:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(45,42,36,.6);}
+  .btn-sub{
+    display:inline-block;background:var(--card);border:2px solid var(--ink);border-radius:12px;
+    padding:10px 22px;font-weight:700;font-size:14px;box-shadow:0 3px 0 rgba(45,42,36,.6);
+  }
+  .btn-disabled{opacity:.45;filter:grayscale(.6);}
+  .btn-row{display:flex;gap:14px;align-items:center;flex-wrap:wrap;}
+
+  /* 模板贴纸 */
+  .tpl-row{display:flex;gap:10px;flex-wrap:wrap;}
+  .tpl{
+    background:var(--paper-2);border:2px solid var(--ink);border-radius:10px;
+    padding:7px 13px;font-size:13px;font-weight:700;box-shadow:2px 2px 0 rgba(45,42,36,.4);
+    cursor:pointer;transition:.15s;
+  }
+  .tpl:hover{transform:translate(-1px,-1px);box-shadow:2.5px 2.5px 0 rgba(45,42,36,.45);background:#fff;}
+  .tpl.on{background:var(--sun);color:#fff;}
+
+  /* 输入框 */
+  .fake-input{
+    background:var(--paper-2);border:2.5px solid var(--ink);border-radius:14px;
+    padding:14px;min-height:96px;font-size:13px;color:var(--ink-soft);position:relative;
+  }
+  .fake-input .count{position:absolute;right:10px;bottom:8px;font-size:12px;color:var(--ink-soft);}
+  .fake-input .count.warn{color:var(--red);font-weight:700;}
+
+  /* AI 讲解气泡 */
+  .bubble-wrap{position:relative;padding-top:26px;}
+  .bubble-who{
+    position:absolute;top:0;left:12px;display:flex;align-items:center;gap:6px;z-index:2;
+  }
+  .bubble-who .mini-modo{
+    width:34px;height:34px;border-radius:50%;background:var(--sun);border:2px solid var(--ink);
+    display:grid;place-items:center;font-size:16px;
+  }
+  .bubble-who span{font-size:12px;color:var(--ink-soft);}
+  .bubble{
+    background:var(--card);border:2.5px solid var(--ink);border-radius:4px 18px 18px 18px;
+    padding:16px 16px 12px;font-size:13px;line-height:2;position:relative;
+  }
+  .bubble.ok{background:var(--green-soft);}
+  .bubble.bad{background:var(--red-soft);}
+  .bubble .tail{
+    position:absolute;left:-11px;top:26px;width:16px;height:16px;background:inherit;
+    border-left:2.5px solid var(--ink);border-bottom:2.5px solid var(--ink);
+    transform:rotate(45deg);
+  }
+  .bubble .who-tag{
+    display:inline-block;font-size:11px;background:var(--blue);color:#fff;border-radius:6px;
+    padding:1px 8px;margin-bottom:6px;
+  }
+  .bubble .who-tag.ai{background:var(--ink-soft);}
+
+  /* 答对 / 答错 选项 */
+  .opt{display:flex;gap:12px;align-items:center;border:2.5px solid var(--ink);border-radius:12px;
+    padding:11px 14px;margin-bottom:10px;background:var(--card);font-size:13.5px;}
+  .opt .key{
+    width:26px;height:26px;flex:none;border:2px solid var(--ink);border-radius:8px;
+    display:grid;place-items:center;font-weight:800;font-size:13px;background:var(--paper);
+  }
+  .opt.correct{background:var(--green-soft);border-color:#2e9e46;}
+  .opt.correct .key{background:var(--green);color:#fff;border-color:#2e9e46;}
+  .opt.wrong{background:var(--red-soft);border-color:#e0454b;}
+  .opt.wrong .key{background:var(--red);color:#fff;border-color:#e0454b;}
+  .opt .mark{margin-left:auto;font-weight:800;font-size:15px;}
+  .opt.correct .mark{color:var(--green);}
+  .opt.wrong .mark{color:var(--red);}
+
+  /* 拟声词贴纸 */
+  .sfx-row{display:flex;gap:16px;align-items:center;flex-wrap:wrap;}
+  .sfx{
+    font-family:"ZCOOL KuaiLe","YouYuan",sans-serif;
+    border:2.5px solid var(--ink);border-radius:14px;padding:8px 16px;font-size:20px;
+    box-shadow:2px 2px 0 rgba(45,42,36,.4);position:relative;letter-spacing:2px;
+  }
+  .sfx.ding{background:var(--green);color:#fff;transform:rotate(-6deg);}
+  .sfx.wu{background:var(--peach);color:var(--ink);transform:rotate(4deg);font-size:16px;}
+  .sfx.combo{background:var(--sun);color:#fff;transform:rotate(-2deg);font-size:17px;}
+  .sfx .star{position:absolute;font-size:12px;}
+  .sfx.ding .s1{top:-10px;left:-12px;} .sfx.ding .s2{top:-14px;right:-10px;} .sfx.ding .s3{bottom:-12px;right:-14px;}
+
+  /* 能量条进度 */
+  .progress-demo{margin-top:4px;}
+  .progress-head{display:flex;justify-content:space-between;font-size:12.5px;font-weight:700;margin-bottom:8px;}
+  .track{height:18px;border:2.5px solid var(--ink);border-radius:999px;background:var(--paper-2);overflow:hidden;}
+  .fill{height:100%;width:62%;background:repeating-linear-gradient(45deg,var(--sun) 0 10px,#ffc63d 10px 20px);border-right:2.5px solid var(--ink);}
+
+  /* 星星 */
+  .stars-row{display:flex;gap:10px;font-size:34px;line-height:1;}
+  .star-item{position:relative;filter:grayscale(1) opacity(.3);}
+  .star-item.lit{filter:none;animation:pop .5s ease;}
+  .star-item.lit:nth-child(2){animation-delay:.15s;}
+  .star-item.lit:nth-child(3){animation-delay:.3s;}
+  @keyframes pop{0%{transform:scale(.3) rotate(-30deg);}70%{transform:scale(1.25) rotate(8deg);}100%{transform:scale(1);}}
+  .star-item .bang{
+    position:absolute;top:-16px;left:50%;transform:translateX(-50%) rotate(-8deg);
+    font-size:11px;background:var(--red);color:#fff;border:2px solid var(--ink);border-radius:8px;
+    padding:0 6px;font-weight:800;display:none;
+  }
+  .star-item.lit .bang{display:block;}
+
+  /* ---------- 05 手机框灰模草图 ---------- */
+  .sketch-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:30px;justify-items:center;}
+  .phone{
+    width:300px;background:var(--card);border:2px solid var(--ink);border-radius:30px;
+    box-shadow:3px 5px 0 rgba(45,42,36,.14);overflow:hidden;
+  }
+  .phone .notch{height:22px;display:grid;place-items:center;background:var(--paper-2);border-bottom:2px solid rgba(62,58,51,.15);}
+  .phone .notch i{width:70px;height:8px;background:rgba(62,58,51,.2);border-radius:999px;}
+  .phone .screen{padding:14px 13px 18px;min-height:560px;background:var(--paper);position:relative;}
+  .phone-cap{text-align:center;margin-top:12px;font-size:13px;font-weight:700;}
+  .phone-cap span{color:var(--ink-soft);font-weight:400;display:block;font-size:12px;margin-top:2px;}
+  /* 灰模元素 */
+  .sk{background:#fff;border:2px solid var(--ink);border-radius:12px;}
+  .sk.soft{border-style:dashed;color:var(--ink-soft);font-size:12px;display:grid;place-items:center;}
+  .sk-title{font-size:16px;font-weight:800;margin:4px 2px 12px;display:flex;align-items:center;gap:8px;}
+  .sk-title .u{flex:1;border-bottom:3px dotted var(--sun-deep);height:10px;}
+  .sk-block{height:34px;margin-bottom:10px;display:flex;align-items:center;padding:0 10px;font-size:11.5px;color:var(--ink-soft);gap:8px;}
+  .sk-row{display:flex;gap:8px;margin-bottom:12px;}
+  .sk-pill{flex:1;height:30px;border:2px solid var(--ink);border-radius:9px;display:grid;place-items:center;font-size:11px;background:var(--paper-2);}
+  .sk-btn{height:44px;border-radius:12px;background:var(--sun);color:#4A2E00;font-weight:800;display:grid;place-items:center;font-size:14px;border:2px solid var(--ink);box-shadow:0 3px 0 rgba(45,42,36,.6);margin:12px 0;}
+  .sk-btn.grey{background:#e8e2d6;color:var(--ink-soft);box-shadow:0 3px 0 rgba(45,42,36,.35);}
+  .sk-note{
+    position:absolute;font-size:10.5px;background:var(--red);color:#fff;padding:2px 8px;
+    border-radius:8px;border:1.5px solid var(--ink);font-weight:700;z-index:5;
+  }
+  .sk-bubble{border:2px solid var(--ink);border-radius:4px 14px 14px 14px;background:#fff;padding:10px;font-size:11px;color:var(--ink-soft);position:relative;margin-top:8px;}
+  .sk-bubble::before{content:"";position:absolute;left:-8px;top:14px;width:12px;height:12px;background:#fff;border-left:2px solid var(--ink);border-bottom:2px solid var(--ink);transform:rotate(45deg);}
+  .sk-tab{position:absolute;bottom:0;left:0;right:0;height:44px;background:var(--paper-2);border-top:2px solid var(--ink);display:flex;}
+  .sk-tab div{flex:1;display:grid;place-items:center;font-size:11px;color:var(--ink-soft);gap:0;}
+  .sk-tab div.on{color:var(--ink);font-weight:800;background:rgba(255,179,0,.18);}
+
+  /* ---------- 06 文件规划 ---------- */
+  .file-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:22px;}
+  .file-card h3{font-size:16px;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+  .file-card code{
+    display:block;background:var(--ink);color:#ffe9b8;border-radius:8px;padding:4px 10px;
+    font-size:12px;font-family:Consolas,monospace;margin-bottom:12px;width:fit-content;
+  }
+  .file-card ul{list-style:none;}
+  .file-card li{
+    font-size:13px;padding:7px 0 7px 24px;position:relative;border-bottom:1.5px dashed rgba(62,58,51,.18);line-height:1.6;
+  }
+  .file-card li::before{content:"▸";position:absolute;left:6px;color:var(--sun-deep);font-weight:800;}
+  .file-card li b{color:var(--ink);}
+  .file-card li .st{font-size:11px;color:var(--ink-soft);}
+
+  /* ---------- 07 待确认 ---------- */
+  .confirm-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;}
+  .confirm-item{display:flex;gap:12px;align-items:flex-start;font-size:13.5px;line-height:1.9;}
+  .confirm-item .qn{
+    flex:none;width:28px;height:28px;background:var(--red);color:#fff;border:2px solid var(--ink);
+    border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:14px;box-shadow:2px 2px 0 var(--ink);
+  }
+  footer{text-align:center;margin-top:60px;color:var(--ink-soft);font-size:13px;line-height:2;}
+  footer .hand{font-size:15px;color:var(--ink);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ================= 顶部 ================= -->
+  <header>
+    <div class="badge hand">UI 风格提案 · 待确认</div>
+    <h1 class="hand">「漫画课桌」<span class="accent">风格提案</span></h1>
+    <p class="sub">界面是一本摊开的《漫画Party》,摊在温暖的书桌上 —— <b>治愈打底 · 漫画点缀</b></p>
+    <p class="sub" style="margin-top:6px;">基调遵守 PRD 3.12:轻松但有成就感,不亢奋 | 对应《产品需求文档》v1.1 · 2026-09-15</p>
+  </header>
+
+  <!-- ================= 01 设计理念 ================= -->
+  <section>
+    <div class="sec-title"><div class="sec-num hand">1</div><h2 class="hand">设计理念 · 三根支柱</h2></div>
+    <p class="sec-desc">从《漫画阿衰》提炼"漫画精神",从治愈系提炼"情绪温度",从 PRD 提炼"反馈即灵魂"。</p>
+    <div class="idea-grid">
+      <div class="sticker rot-l">
+        <h3 class="hand"><span class="emoji-chip">🎨</span>漫画精神(点缀)</h3>
+        <p>亮黄封面底 + 红色粗描边标题的撞色记忆;粗黑描边贴纸卡片;拟声词(「叮!」「唔…」)只在<b>反馈瞬间</b>出现;夸张但克制的表情语言。</p>
+        <span class="tag">来自:阿衰封面黄底红字 / 漫画符号语言</span>
+      </div>
+      <div class="sticker rot-r">
+        <h3 class="hand"><span class="emoji-chip">🧸</span>治愈打底(基底)</h3>
+        <p>奶油黄纸面 + 网点纹理;文字用深咖灰不用纯黑;大圆角、大留白;答错用<b>温和的桃粉气泡</b>而不是刺眼大红 —— 挫败感被"接住"。</p>
+        <span class="tag">来自:PRD 答错反馈要求 / 多邻国"不用纯黑"经验</span>
+      </div>
+      <div class="sticker rot-l">
+        <h3 class="hand"><span class="emoji-chip">⚡</span>反馈即灵魂(交互)</h3>
+        <p>答题的 200ms 反馈决定复玩意愿:答对绿色扩散 + 星星迸溅;连击弹速度线贴纸;AI 讲解做成<b>颜宝老师的对话气泡</b> —— 像漫画角色在跟你说话。</p>
+        <span class="tag">来自:PRD 3.12 L11 微交互设计</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 02 色板 ================= -->
+  <section>
+    <div class="sec-title"><div class="sec-num hand">2</div><h2 class="hand">色板 · 黄底红字的现代化转译</h2></div>
+    <p class="sec-desc">阿衰封面黄降饱和成纸面底色,封面红留给强调与警示,多邻国绿调柔后承接"答对"。</p>
+    <div class="palette">
+      <div class="swatch rot-l"><div class="chip" style="background:#FFFCEF;"><span class="pct">背景 70%</span></div><div class="meta"><b>纸面奶油黄</b><span>#FFFCEF</span></div></div>
+      <div class="swatch"><div class="chip" style="background:#FFB300;"><span class="pct">主行动 15%</span></div><div class="meta"><b>活力黄橙</b><span>#FFB300</span></div></div>
+      <div class="swatch rot-r"><div class="chip" style="background:#FF5A5F;"><span class="pct">强调 5%</span></div><div class="meta"><b>阿衰红</b><span>#FF5A5F</span></div></div>
+      <div class="swatch"><div class="chip" style="background:#58C86E;"><span class="pct">答对 5%</span></div><div class="meta"><b>答对柔绿</b><span>#58C86E</span></div></div>
+      <div class="swatch rot-l"><div class="chip" style="background:#4DA8DA;"><span class="pct">辅助 5%</span></div><div class="meta"><b>信息蓝</b><span>#4DA8DA</span></div></div>
+      <div class="swatch"><div class="chip" style="background:#3E3A33;"><span class="pct">文字/描边</span></div><div class="meta"><b>深咖灰</b><span>#3E3A33</span></div></div>
+    </div>
+  </section>
+
+  <!-- ================= 03 吉祥物 ================= -->
+  <section>
+    <div class="sec-title"><div class="sec-num hand">3</div><h2 class="hand">吉祥物「颜宝 YANBAO」· 自创 IP</h2></div>
+    <p class="sec-desc">一颗圆滚滚的小墨滴,头顶两根呆毛,戴圆眼镜 —— 造型治愈圆润,表情夸张多变(承接阿衰的表情语言),SVG 绘制,零版权风险。</p>
+    <div class="modo-grid">
+      <div class="sticker modo-card rot-l">
+        <svg viewBox="0 0 120 120">
+          <defs>
+            <radialGradient id="yb1" cx="35%" cy="28%" r="80%">
+              <stop offset="0%" stop-color="#FFFFFF"/>
+              <stop offset="55%" stop-color="#FFF8EA"/>
+              <stop offset="100%" stop-color="#FFE7BE"/>
+            </radialGradient>
+          </defs>
+          <!-- 地面阴影 -->
+          <ellipse cx="60" cy="112" rx="35" ry="6" fill="rgba(45,42,36,.14)"/>
+          <!-- 呆毛(卷卷) -->
+          <path d="M51 32 Q44 22 46 14" fill="none" stroke="#2D2A24" stroke-width="3.5" stroke-linecap="round"/>
+          <path d="M69 32 Q76 22 74 14" fill="none" stroke="#2D2A24" stroke-width="3.5" stroke-linecap="round"/>
+          <circle cx="45.5" cy="11.5" r="4.5" fill="#FFB300" stroke="#2D2A24" stroke-width="2.5"/>
+          <circle cx="74.5" cy="11.5" r="4.5" fill="#FFB300" stroke="#2D2A24" stroke-width="2.5"/>
+          <!-- 小脚 -->
+          <ellipse cx="47" cy="109" rx="10" ry="6.5" fill="#FFE7BE" stroke="#2D2A24" stroke-width="3"/>
+          <ellipse cx="73" cy="109" rx="10" ry="6.5" fill="#FFE7BE" stroke="#2D2A24" stroke-width="3"/>
+          <!-- 小手 -->
+          <circle cx="19" cy="82" r="8" fill="#FFF6E4" stroke="#2D2A24" stroke-width="3"/>
+          <circle cx="101" cy="82" r="8" fill="#FFF6E4" stroke="#2D2A24" stroke-width="3"/>
+          <!-- 身体(胖圆) -->
+          <ellipse cx="60" cy="69" rx="43" ry="41" fill="url(#yb1)" stroke="#2D2A24" stroke-width="3.5"/>
+          <!-- 高光 -->
+          <ellipse cx="42" cy="48" rx="14" ry="9" fill="rgba(255,255,255,.75)" transform="rotate(-18 42 48)"/>
+          <!-- 眼镜 -->
+          <circle cx="46.5" cy="62" r="12" fill="rgba(255,255,255,.9)" stroke="#2D2A24" stroke-width="3"/>
+          <circle cx="73.5" cy="62" r="12" fill="rgba(255,255,255,.9)" stroke="#2D2A24" stroke-width="3"/>
+          <path d="M58.5 61 Q60 57.5 61.5 61" fill="none" stroke="#2D2A24" stroke-width="3"/>
+          <!-- 得意弯月眼 -->
+          <path d="M42 63 Q46.5 58 51 63" fill="none" stroke="#2D2A24" stroke-width="3" stroke-linecap="round"/>
+          <path d="M69 63 Q73.5 58 78 63" fill="none" stroke="#2D2A24" stroke-width="3" stroke-linecap="round"/>
+          <!-- 张嘴大笑 -->
+          <path d="M49 80 Q60 93 71 80 Q60 84 49 80 Z" fill="#2D2A24"/>
+          <path d="M53.5 81.5 Q60 85.5 66.5 81.5 Q60 88 53.5 81.5 Z" fill="#FF8A94"/>
+          <!-- 腮红 -->
+          <ellipse cx="33" cy="76" rx="6.5" ry="4.5" fill="#FFC9B5"/>
+          <ellipse cx="87" cy="76" rx="6.5" ry="4.5" fill="#FFC9B5"/>
+          <!-- 得意小星星 -->
+          <path d="M99 40 l2.2 4.6 5 .7 -3.6 3.5 .9 5 -4.5-2.4 -4.5 2.4 .9-5 -3.6-3.5 5-.7z" fill="#FFD34D" stroke="#2D2A24" stroke-width="2"/>
+        </svg>
+        <h4><span class="callout hand">答对啦!</span>得意颜宝</h4>
+        <p>答题页答对瞬间出场:弯月眼 + 张嘴大笑,配「叮!」星星贴纸。对应 PRD 答对反馈。</p>
+      </div>
+      <div class="sticker modo-card">
+        <svg viewBox="0 0 120 120">
+          <defs>
+            <radialGradient id="yb2" cx="35%" cy="28%" r="80%">
+              <stop offset="0%" stop-color="#FFFFFF"/>
+              <stop offset="55%" stop-color="#FFF8EA"/>
+              <stop offset="100%" stop-color="#FFE7BE"/>
+            </radialGradient>
+          </defs>
+          <ellipse cx="60" cy="112" rx="35" ry="6" fill="rgba(45,42,36,.14)"/>
+          <path d="M51 32 Q44 22 46 14" fill="none" stroke="#2D2A24" stroke-width="3.5" stroke-linecap="round"/>
+          <path d="M69 32 Q76 22 74 14" fill="none" stroke="#2D2A24" stroke-width="3.5" stroke-linecap="round"/>
+          <circle cx="45.5" cy="11.5" r="4.5" fill="#FFB300" stroke="#2D2A24" stroke-width="2.5"/>
+          <circle cx="74.5" cy="11.5" r="4.5" fill="#FFB300" stroke="#2D2A24" stroke-width="2.5"/>
+          <ellipse cx="47" cy="109" rx="10" ry="6.5" fill="#FFE7BE" stroke="#2D2A24" stroke-width="3"/>
+          <ellipse cx="73" cy="109" rx="10" ry="6.5" fill="#FFE7BE" stroke="#2D2A24" stroke-width="3"/>
+          <circle cx="19" cy="84" r="8" fill="#FFF6E4" stroke="#2D2A24" stroke-width="3"/>
+          <circle cx="101" cy="84" r="8" fill="#FFF6E4" stroke="#2D2A24" stroke-width="3"/>
+          <ellipse cx="60" cy="69" rx="43" ry="41" fill="url(#yb2)" stroke="#2D2A24" stroke-width="3.5"/>
+          <ellipse cx="42" cy="48" rx="14" ry="9" fill="rgba(255,255,255,.75)" transform="rotate(-18 42 48)"/>
+          <circle cx="46.5" cy="62" r="12" fill="rgba(255,255,255,.9)" stroke="#2D2A24" stroke-width="3"/>
+          <circle cx="73.5" cy="62" r="12" fill="rgba(255,255,255,.9)" stroke="#2D2A24" stroke-width="3"/>
+          <path d="M58.5 61 Q60 57.5 61.5 61" fill="none" stroke="#2D2A24" stroke-width="3"/>
+          <!-- 思考圆眼珠(向上看) -->
+          <circle cx="46.5" cy="59.5" r="4.2" fill="#2D2A24"/>
+          <circle cx="73.5" cy="59.5" r="4.2" fill="#2D2A24"/>
+          <circle cx="48" cy="58" r="1.4" fill="#fff"/>
+          <circle cx="75" cy="58" r="1.4" fill="#fff"/>
+          <!-- O 嘴 -->
+          <ellipse cx="60" cy="84" rx="5.5" ry="7" fill="#2D2A24"/>
+          <ellipse cx="60" cy="85.5" rx="2.6" ry="3.4" fill="#FF8A94"/>
+          <ellipse cx="33" cy="76" rx="6.5" ry="4.5" fill="#FFC9B5"/>
+          <ellipse cx="87" cy="76" rx="6.5" ry="4.5" fill="#FFC9B5"/>
+          <!-- 思考泡泡 -->
+          <circle cx="97" cy="34" r="4" fill="#fff" stroke="#2D2A24" stroke-width="2"/>
+          <circle cx="106" cy="24" r="5.5" fill="#fff" stroke="#2D2A24" stroke-width="2"/>
+          <text x="103" y="29" font-size="11" font-weight="bold" fill="#FF5A5F" text-anchor="middle">?</text>
+        </svg>
+        <h4><span class="callout hand">唔…让我想想</span>思考颜宝</h4>
+        <p>生成大纲/出题时出场:O 型嘴 + 头顶问号,配骨架屏循环文案("正在理解你的内容…")。</p>
+      </div>
+      <div class="sticker modo-card rot-r">
+        <svg viewBox="0 0 120 120">
+          <defs>
+            <radialGradient id="yb3" cx="35%" cy="28%" r="80%">
+              <stop offset="0%" stop-color="#FFFFFF"/>
+              <stop offset="55%" stop-color="#FFF8EA"/>
+              <stop offset="100%" stop-color="#FFE7BE"/>
+            </radialGradient>
+          </defs>
+          <ellipse cx="60" cy="112" rx="35" ry="6" fill="rgba(45,42,36,.14)"/>
+          <path d="M51 32 Q44 22 46 14" fill="none" stroke="#2D2A24" stroke-width="3.5" stroke-linecap="round"/>
+          <path d="M69 32 Q76 22 74 14" fill="none" stroke="#2D2A24" stroke-width="3.5" stroke-linecap="round"/>
+          <circle cx="45.5" cy="11.5" r="4.5" fill="#FFB300" stroke="#2D2A24" stroke-width="2.5"/>
+          <circle cx="74.5" cy="11.5" r="4.5" fill="#FFB300" stroke="#2D2A24" stroke-width="2.5"/>
+          <ellipse cx="47" cy="109" rx="10" ry="6.5" fill="#FFE7BE" stroke="#2D2A24" stroke-width="3"/>
+          <ellipse cx="73" cy="109" rx="10" ry="6.5" fill="#FFE7BE" stroke="#2D2A24" stroke-width="3"/>
+          <!-- 小手合十在胸前 -->
+          <circle cx="52" cy="92" r="7.5" fill="#FFF6E4" stroke="#2D2A24" stroke-width="3"/>
+          <circle cx="68" cy="92" r="7.5" fill="#FFF6E4" stroke="#2D2A24" stroke-width="3"/>
+          <ellipse cx="60" cy="69" rx="43" ry="41" fill="url(#yb3)" stroke="#2D2A24" stroke-width="3.5"/>
+          <ellipse cx="42" cy="48" rx="14" ry="9" fill="rgba(255,255,255,.75)" transform="rotate(-18 42 48)"/>
+          <circle cx="46.5" cy="62" r="12" fill="rgba(255,255,255,.9)" stroke="#2D2A24" stroke-width="3"/>
+          <circle cx="73.5" cy="62" r="12" fill="rgba(255,255,255,.9)" stroke="#2D2A24" stroke-width="3"/>
+          <path d="M58.5 61 Q60 57.5 61.5 61" fill="none" stroke="#2D2A24" stroke-width="3"/>
+          <!-- 温柔闭眼 -->
+          <path d="M42 63 Q46.5 67 51 63" fill="none" stroke="#2D2A24" stroke-width="3" stroke-linecap="round"/>
+          <path d="M69 63 Q73.5 67 78 63" fill="none" stroke="#2D2A24" stroke-width="3" stroke-linecap="round"/>
+          <!-- 微笑 -->
+          <path d="M51 81 Q60 88 69 81" fill="none" stroke="#2D2A24" stroke-width="3" stroke-linecap="round"/>
+          <ellipse cx="33" cy="76" rx="6.5" ry="4.5" fill="#FFC9B5"/>
+          <ellipse cx="87" cy="76" rx="6.5" ry="4.5" fill="#FFC9B5"/>
+          <!-- 头顶爱心 -->
+          <path d="M60 22 c-3.5-7 -14-4.5 -11 4 c1.5 4.5 7 8 11 11 c4-3 9.5-6.5 11-11 c3-8.5 -7.5-11 -11-4z" fill="#FF5A5F" stroke="#2D2A24" stroke-width="2.5"/>
+        </svg>
+        <h4><span class="callout hand">没关系,再想想</span>鼓励颜宝</h4>
+        <p>答错瞬间出场:闭眼温柔微笑 + 头顶小爱心,配桃粉「唔…」气泡 —— 温和不挫败。</p>
+      </div>
+    </div>
+    <div class="modo-note">
+      <b>为什么不是高仿阿衰?</b> 阿衰是猫小乐的版权 IP,直接使用会在产品化时构成侵权。
+      颜宝保留其精神内核 —— <b>夸张的表情语言、黄黑描边、贴纸感</b>,但形体是原创的;
+      三个表情对应答题页的三种反馈状态,后续可扩展(睡觉=无进度、举旗=通关、戴状元帽=三星)。
+    </div>
+  </section>
+
+  <!-- ================= 04 组件样例 ================= -->
+  <section>
+    <div class="sec-title"><div class="sec-num hand">4</div><h2 class="hand">核心组件样例 · 可直接复用</h2></div>
+    <p class="sec-desc">以下即全套原型的组件基座:贴纸卡片体系 + 硬阴影按压按钮 + 对话气泡讲解。</p>
+    <div class="comp-grid">
+
+      <div class="sticker comp-cell rot-l">
+        <div class="label"><b>主按钮 · 硬阴影按压感</b><span> borrowing 多邻国</span></div>
+        <div class="btn-main hand">开 始 生 成</div>
+        <div class="btn-row" style="margin-top:16px;">
+          <div class="btn-sub">重新生成</div>
+          <div class="btn-sub btn-disabled">提交(未选择)</div>
+        </div>
+        <p style="font-size:12px;color:var(--ink-soft);margin-top:14px;line-height:1.8;">按下时位移 4px、阴影收缩,模拟"漫画格子里按下去"的手感。</p>
+      </div>
+
+      <div class="sticker comp-cell">
+        <div class="label"><b>模板贴纸 · 横滑卡片</b><span>P1 首页</span></div>
+        <div class="tpl-row">
+          <div class="tpl on">行测·资料分析</div><div class="tpl">公基·法律</div>
+          <div class="tpl">考研政治</div><div class="tpl">英语语法</div>
+          <div class="tpl">编程概念</div><div class="tpl">✏️ 自定义</div>
+        </div>
+        <p style="font-size:12px;color:var(--ink-soft);margin-top:14px;line-height:1.8;">6 个预设模板(对应 PRD L12),点击即选中态;微微错落旋转,像桌上的便签。</p>
+      </div>
+
+      <div class="sticker comp-cell rot-r">
+        <div class="label"><b>知识输入框 · 字数校验</b><span>F1 校验规则</span></div>
+        <div class="fake-input">
+          粘贴一段笔记、讲义或任何想学的内容…
+          <span class="count">18/2000</span>
+        </div>
+        <div class="fake-input" style="margin-top:12px;border-color:var(--red);">
+          内容太短,再多描述一点吧…
+          <span class="count warn">20 字起</span>
+        </div>
+        <p style="font-size:12px;color:var(--ink-soft);margin-top:14px;line-height:1.8;">右下角实时字数;<b style="color:var(--red)">超限/过短变红</b>并阻止提交(对应 PRD F1 校验表)。</p>
+      </div>
+
+      <div class="sticker comp-cell">
+        <div class="label"><b>AI 讲解 · 颜宝对话气泡</b><span>答对态(绿) / 答错态(红)</span></div>
+        <div class="bubble-wrap">
+          <div class="bubble-who"><div class="mini-modo">😄</div><span>颜宝老师 · AI</span></div>
+          <div class="bubble ok"><i class="tail"></i><span class="who-tag">回答正确 ✓</span><br>选 B 正确!准备金率提高 → 银行可贷资金变少 → 货币乘数下降,所以信用扩张会被抑制。</div>
+        </div>
+        <div class="bubble-wrap" style="margin-top:18px;">
+          <div class="bubble-who"><div class="mini-modo">🥺</div><span>颜宝老师 · AI</span></div>
+          <div class="bubble bad"><i class="tail"></i><span class="who-tag" style="background:var(--red);">正确答案是 B</span><br>你选了 C。注意:缴存<b>更多</b>准备金意味着银行手里能放贷的钱<b>变少</b>,不是变多哦。</div>
+        </div>
+      </div>
+
+      <div class="sticker comp-cell rot-l">
+        <div class="label"><b>选项反馈态</b><span>提交前可改 / 提交后锁定</span></div>
+        <div class="opt correct"><span class="key">B</span>缴存准备金越多,可贷资金越少<span class="mark">✓</span></div>
+        <div class="opt wrong"><span class="key">C</span>缴存准备金越多,可贷资金越多<span class="mark">✗</span></div>
+        <div class="opt" style="opacity:.55;"><span class="key">D</span>与缴存比例无关<span class="mark"></span></div>
+        <p style="font-size:12px;color:var(--ink-soft);margin-top:14px;line-height:1.8;">答对绿 + 对勾;答错红 + <b>正确答案高亮</b>(PRD 反馈表);未提交前选中仅描边高亮。</p>
+      </div>
+
+      <div class="sticker comp-cell">
+        <div class="label"><b>拟声词贴纸 + 能量条 + 星级</b><span>反馈三件套</span></div>
+        <div class="sfx-row">
+          <div class="sfx ding hand">叮!<span class="star s1">✦</span><span class="star s2">✧</span><span class="star s3">✦</span></div>
+          <div class="sfx wu hand">唔…再想想</div>
+          <div class="sfx combo hand">3 连击!≫</div>
+        </div>
+        <div class="progress-demo" style="margin-top:20px;">
+          <div class="progress-head"><span>第 2 关 · 3/5</span><span>62%</span></div>
+          <div class="track"><div class="fill"></div></div>
+        </div>
+        <div class="stars-row" style="margin-top:22px;">
+          <div class="star-item lit">⭐<span class="bang">啪!</span></div>
+          <div class="star-item lit">⭐<span class="bang">啪!</span></div>
+          <div class="star-item">⭐</div>
+        </div>
+        <p style="font-size:12px;color:var(--ink-soft);margin-top:14px;line-height:1.8;">能量条 = 关内题目进度;星星结算页逐个"啪"点亮,未获得的星星保持灰态。</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ================= 05 关键页灰模草图 ================= -->
+  <section>
+    <div class="sec-title"><div class="sec-num hand">5</div><h2 class="hand">关键页灰模草图 · 布局确认用</h2></div>
+    <p class="sec-desc">只看信息层级与布局,不呈现最终配色。红签 = 对应 PRD 的需求点。</p>
+    <div class="sketch-grid">
+
+      <!-- P1 首页 -->
+      <div>
+        <div class="phone">
+          <div class="notch"><i></i></div>
+          <div class="screen">
+            <div class="sk-title">今天想学点什么?<span class="u"></span></div>
+            <div class="sk soft" style="height:88px;margin-bottom:12px;">多行文本框(贴纸卡片)<br>右下角字数 0/2000</div>
+            <div class="sk-note" style="top:96px;right:14px;">F1 实时字数校验</div>
+            <div class="sk-row">
+              <div class="sk-pill">行测</div><div class="sk-pill">公基</div><div class="sk-pill">考研</div>
+            </div>
+            <div class="sk-row">
+              <div class="sk-pill">语法</div><div class="sk-pill">编程</div><div class="sk-pill">自定义</div>
+            </div>
+            <div class="sk-note" style="top:186px;right:14px;">L12 模板横滑</div>
+            <div class="sk-btn">▶ 开始生成</div>
+            <div class="sk soft" style="height:44px;margin-bottom:12px;border-color:var(--sun-deep);color:var(--ink);">⏯ 继续上次的学习 · 第2关 3/5</div>
+            <div class="sk soft" style="height:40px;margin-bottom:8px;">最近学习① · 正确率 86%</div>
+            <div class="sk soft" style="height:40px;">最近学习② · 三星 ⭐⭐⭐</div>
+            <div class="sk-tab"><div class="on">🏠 首页</div><div>👤 我的</div></div>
+          </div>
+        </div>
+        <div class="phone-cap">P1 首页<span>输入 → 模板 → 生成 → 继续/最近学习</span></div>
+      </div>
+
+      <!-- P3 答题页 -->
+      <div>
+        <div class="phone">
+          <div class="notch"><i></i></div>
+          <div class="screen">
+            <div class="sk-row" style="align-items:center;">
+              <div class="sk-pill" style="flex:0 0 44px;">←</div>
+              <div style="flex:1;text-align:center;font-size:13px;font-weight:800;">第 2 关 · 3/5</div>
+              <div class="sk-pill" style="flex:0 0 44px;">🔥</div>
+            </div>
+            <div class="track" style="margin-bottom:14px;"><div class="fill" style="width:60%;"></div></div>
+            <div class="sk-note" style="top:52px;right:12px;">关内进度能量条</div>
+            <div class="sk soft" style="height:24px;margin-bottom:8px;width:70px;">单选标签</div>
+            <div class="sk" style="height:66px;margin-bottom:14px;padding:8px 10px;font-size:11.5px;color:var(--ink-soft);">题干:下列关于存款准备金率的说法,正确的是…</div>
+            <div class="sk" style="height:36px;margin-bottom:8px;display:flex;align-items:center;padding:0 10px;font-size:11.5px;gap:8px;"><span style="width:20px;height:20px;border:2px solid var(--ink);border-radius:6px;display:inline-grid;place-items:center;">A</span>选项内容…</div>
+            <div class="sk" style="height:36px;margin-bottom:8px;display:flex;align-items:center;padding:0 10px;font-size:11.5px;gap:8px;background:var(--green-soft);"><span style="width:20px;height:20px;border:2px solid var(--ink);border-radius:6px;display:inline-grid;place-items:center;background:var(--green);color:#fff;">B</span>选项内容…<span style="margin-left:auto;color:var(--green);font-weight:800;">✓</span></div>
+            <div class="sk" style="height:36px;margin-bottom:12px;display:flex;align-items:center;padding:0 10px;font-size:11.5px;gap:8px;background:var(--red-soft);"><span style="width:20px;height:20px;border:2px solid var(--ink);border-radius:6px;display:inline-grid;place-items:center;background:var(--red);color:#fff;">C</span>选项内容…<span style="margin-left:auto;color:var(--red);font-weight:800;">✗</span></div>
+            <div class="sk-note" style="top:236px;right:12px;">答对绿/答错红+正解高亮</div>
+            <div class="sk-bubble">😄 颜宝讲解气泡:回答正确!因为准备金率提高→可贷资金减少…<br><span style="font-size:10px;">(对错都展示讲解 · 答案仅在提交后返回)</span></div>
+            <div class="sk-btn" style="height:40px;">下一题 →</div>
+            <div class="sk-note" style="bottom:64px;left:14px;">反馈后才出现</div>
+          </div>
+        </div>
+        <div class="phone-cap">P3 答题页 · 反馈即灵魂<span>选择→提交→判定→讲解→下一题</span></div>
+      </div>
+
+      <!-- P4 结算页 -->
+      <div>
+        <div class="phone">
+          <div class="notch"><i></i></div>
+          <div class="screen" style="text-align:center;">
+            <div style="font-size:15px;font-weight:800;margin:6px 0 4px;">🎉 闯关完成!</div>
+            <div style="font-size:40px;letter-spacing:6px;margin:8px 0;">⭐⭐⭐</div>
+            <div class="sk-note" style="top:40px;right:12px;">星级逐个点亮动画</div>
+            <div class="sk" style="height:74px;margin:10px 0;display:grid;place-items:center;font-size:12px;color:var(--ink-soft);">正确率大数字(爆炸框)<br>86% · 用时 8分12秒 · 答对 13/15</div>
+            <div class="sk soft" style="height:34px;margin-bottom:8px;">知识点① · 92% ████████░</div>
+            <div class="sk soft" style="height:34px;margin-bottom:8px;border-color:var(--red);color:var(--red);">知识点② · 40% ███░░░░░░ ⚠薄弱</div>
+            <div class="sk-bubble" style="text-align:left;">🥚 你在「货币政策工具」正确率 40%,建议重点复习这一块</div>
+            <div class="sk-note" style="top:206px;left:14px;">&lt;60% 标红 + 指向性建议</div>
+            <div class="sk-btn" style="margin-top:16px;">🔄 再来一次</div>
+            <div class="sk-btn grey" style="margin-top:0;">📋 查看学习记录</div>
+          </div>
+        </div>
+        <div class="phone-cap">P4 结算页<span>星级 → 数据 → 薄弱点 → 建议</span></div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ================= 06 文件规划 ================= -->
+  <section>
+    <div class="sec-title"><div class="sec-num hand">6</div><h2 class="hand">原型文件规划 · 一行三列 / 响应式</h2></div>
+    <p class="sec-desc">核心业务流程与扩展功能分开成文件;每屏为 375 手机框,CSS Grid 一行三列,窄屏自动折行。</p>
+    <div class="file-grid">
+      <div class="sticker file-card rot-l">
+        <h3 class="hand">📄 入口导航</h3>
+        <code>prototype/index.html</code>
+        <ul>
+          <li>全部页面的<b>索引目录</b>,点击跳转到对应原型</li>
+          <li>内嵌精简版<b>设计规范</b>(色板/字号/间距/组件)</li>
+          <li>页面跳转关系图(对应 PRD 5.5)</li>
+        </ul>
+      </div>
+      <div class="sticker file-card">
+        <h3 class="hand">🧩 核心业务流程</h3>
+        <code>prototype/core-flow.html</code>
+        <ul>
+          <li>P1 首页(空态 / 有继续学习态)<b class="st">×2</b></li>
+          <li>P2 大纲确认(生成中 / 可编辑 / 生成失败)<b class="st">×3</b></li>
+          <li>P3 答题(单选 / 多选 / 判断 / 答对 / 答错 / 连击)<b class="st">×6</b></li>
+          <li>P4 结算(三星 / 低分薄弱) <b class="st">×2</b></li>
+          <li>P5 我的(有记录 / 空状态)<b class="st">×2</b></li>
+          <li>中途退出确认弹窗 / 题目举报入口<b class="st">×2</b></li>
+        </ul>
+      </div>
+      <div class="sticker file-card rot-r">
+        <h3 class="hand">🚀 扩展功能(V0.5+)</h3>
+        <code>prototype/extended.html</code>
+        <ul>
+          <li>关卡地图(SVG 蜿蜒路径 · 四种节点状态)</li>
+          <li>错题本 + 一键重练</li>
+          <li>今日复习(间隔重复入口卡片)</li>
+          <li>复盘报告(雷达图 + 趋势折线 + 错误模式)</li>
+          <li>分享海报(成果型 / 挑战型)<b class="st">×2</b></li>
+          <li>扫码挑战答题入口页</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 07 待确认清单 ================= -->
+  <section>
+    <div class="sec-title"><div class="sec-num hand">7</div><h2 class="hand">请你确认的 5 个点</h2></div>
+    <p class="sec-desc">全部确认后,我立即开始产出 core-flow.html 与 extended.html 全套高保真原型。</p>
+    <div class="sticker" style="padding:26px;">
+      <div class="confirm-list">
+        <div class="confirm-item"><div class="qn">1</div><div><b>配色方向</b><br>奶油黄纸面 + 黄橙主按钮 + 红色点缀,是否符合你心中"阿衰的意境"?</div></div>
+        <div class="confirm-item"><div class="qn">2</div><div><b>吉祥物颜宝</b><br>造型与三表情设定(得意/思考/鼓励)是否 OK?名字要不要换?</div></div>
+        <div class="confirm-item"><div class="qn">3</div><div><b>组件语言</b><br>贴纸卡片(描边+硬阴影)、对话气泡讲解、拟声词贴纸,是否保留?</div></div>
+        <div class="confirm-item"><div class="qn">4</div><div><b>三张灰模布局</b><br>P1/P3/P4 的信息层级与 PRD 是否一致?有无想增删的区域?</div></div>
+        <div class="confirm-item"><div class="qn">5</div><div><b>文件分组</b><br>index / core-flow / extended 三文件规划是否符合预期?</div></div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p class="hand">确认后开工 · 每一屏都按本风格板执行 🍯</p>
+    <p>AI 闯关学习小程序 · UI 原型阶段 | 依据《产品需求文档》v1.1 · 《技术选型分析》v1.0 | 2026-09-15</p>
+  </footer>
+
+</div>
+</body>
+</html>

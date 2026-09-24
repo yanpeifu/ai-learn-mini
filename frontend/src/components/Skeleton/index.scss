@@ -1,0 +1,43 @@
+.skl-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.skl {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-sizing: border-box;
+  border: $bw solid $ink;
+  border-radius: 18px;
+  background: $card;
+  padding: 12px;
+  box-shadow: $hard;
+}
+
+.skl-dot {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border: 2px solid $line;
+  border-radius: 50%;
+  background: $line;
+}
+
+.skl-line {
+  height: 9px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, $line 0%, #fbf7f1 50%, $line 100%);
+  background-size: 200% 100%;
+  animation: skl-shim 1.4s linear infinite;
+}
+
+@keyframes skl-shim {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}

@@ -1,0 +1,35 @@
+.chip {
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  border: 2px solid $ink;
+  border-radius: $r-pill;
+  padding: 1px 9px;
+  font-size: 10.5px;
+  font-weight: 700;
+  line-height: 1.6;
+  background: $card;
+  box-shadow: 0 1px 0 $ink;
+}
+
+.chip-yellow {
+  background: $yellow;
+}
+
+.chip-mint {
+  background: $mint;
+}
+
+.chip-lav {
+  background: $lav;
+}
+
+.chip-coral {
+  background: $coral;
+}
+
+.chip-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}

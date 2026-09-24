@@ -1,0 +1,23 @@
+.tipbar {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  box-sizing: border-box;
+  border: $bw solid $ink;
+  border-radius: $r-option;
+  background: $yellow;
+  padding: 9px 12px;
+  box-shadow: $hard;
+}
+
+.tipbar-icon {
+  margin-top: 1px;
+  transform: scale(0.83);
+}
+
+.tipbar-text {
+  flex: 1;
+  font-size: 12px;
+  line-height: 1.6;
+  color: $ink;
+}

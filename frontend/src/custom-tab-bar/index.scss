@@ -1,0 +1,32 @@
+.tabbar {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 900;
+  display: flex;
+  height: 52px;
+  border-top: $bw solid $ink;
+  background: $card;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.tabbar-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  font-size: 10.5px;
+  color: $ink-2;
+}
+
+.tabbar-item-on {
+  color: $ink;
+  font-weight: 700;
+}
+
+.tabbar-text {
+  font-size: 10.5px;
+}

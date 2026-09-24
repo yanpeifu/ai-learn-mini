@@ -1,0 +1,16 @@
+.prog {
+  height: 12px;
+  box-sizing: border-box;
+  border: 2px solid $ink;
+  border-radius: $r-pill;
+  background: $card;
+  box-shadow: $hard;
+  overflow: hidden;
+}
+
+.prog-fill {
+  height: 100%;
+  background: $orange;
+  border-right: 2px solid $ink;
+  transition: width 320ms $ease-bounce;
+}

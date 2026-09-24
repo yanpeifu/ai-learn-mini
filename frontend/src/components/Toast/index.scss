@@ -1,0 +1,12 @@
+.toast {
+  box-sizing: border-box;
+  border: $bw solid $ink;
+  border-radius: 14px;
+  background: $coral;
+  padding: 8px 12px;
+  box-shadow: $hard;
+  font-size: 11.5px;
+  font-weight: 600;
+  line-height: 1.6;
+  color: $ink;
+}
