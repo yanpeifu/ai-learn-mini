@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>原型 3 · 状态与规范 — AI 闯关学习小程序</title>
+<style>
+  :root{
+    --paper:#FFFCF7; --card:#FFF; --ink:#33302E; --ink2:#8A8078; --line:#F0E9E0;
+    --orange:#FFA85C; --orange-d:#EE9247; --mint:#7ED9A8; --mint-i:#2A7D57;
+    --coral:#FF9A9A; --coral-i:#C4564F; --lav:#B9A6F5; --yellow:#FFE08A;
+    --r-card:24px; --r-btn:18px; --bw:2.5px;
+    --hard:0 2px 0 var(--ink);
+    --soft:0 2px 0 var(--ink), 0 10px 20px rgba(51,48,46,.06);
+    --gloss:inset 0 2px 0 rgba(255,255,255,.65);
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;padding:44px 24px 100px;background:var(--paper);color:var(--ink);
+    font-family:"PingFang SC","HarmonyOS Sans SC","MiSans","Microsoft YaHei",sans-serif;
+    line-height:1.65;-webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1360px;margin:0 auto}
+  h1{font-size:26px;margin:0 0 6px}
+  .lead{color:var(--ink2);font-size:14px;margin:0 0 6px}
+  .badge{display:inline-block;background:var(--mint);border:var(--bw) solid var(--ink);
+    border-radius:999px;padding:4px 14px;font-size:12px;font-weight:700;
+    box-shadow:var(--hard);margin:6px 0 30px}
+  h2{font-size:18px;margin:52px 0 6px;padding-bottom:10px;border-bottom:var(--bw) solid var(--ink)}
+  h2:first-of-type{margin-top:0}
+  .h2sub{color:var(--ink2);font-size:13px;margin:0 0 22px}
+  .grid3{display:grid;gap:22px;grid-template-columns:repeat(3,minmax(0,1fr));align-items:start}
+  .grid4{display:grid;gap:18px;grid-template-columns:repeat(4,minmax(0,1fr));align-items:start}
+  .grid2{display:grid;gap:22px;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}
+  @media(max-width:1180px){.grid3,.grid4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media(max-width:760px){.grid2,.grid3,.grid4{grid-template-columns:1fr}}
+
+  .cap{font-size:11.5px;color:var(--ink2);line-height:1.5}
+  .sec{font-size:12px;font-weight:700;color:var(--ink2)}
+  .card{background:var(--card);border:var(--bw) solid var(--ink);border-radius:var(--r-card);
+        box-shadow:var(--soft),var(--gloss);padding:18px}
+  .card h4{margin:0 0 12px;font-size:14px}
+
+  /* ---------- 手机外框 ---------- */
+  .phone{
+    width:100%;max-width:375px;margin:0 auto;min-height:660px;background:var(--paper);
+    border:var(--bw) solid var(--ink);border-radius:34px;box-shadow:var(--soft);
+    display:flex;flex-direction:column;overflow:hidden;font-size:14px;
+  }
+  .sbar{height:30px;flex:none;display:flex;align-items:center;justify-content:space-between;
+        padding:0 18px;font-size:11px;color:var(--ink2)}
+  .nav{height:46px;flex:none;display:flex;align-items:center;gap:10px;padding:0 16px;
+       font-weight:700;font-size:15px;border-bottom:2px dashed var(--line)}
+  .nav .back{font-size:17px;color:var(--ink2);font-weight:400}
+  .content{flex:1;padding:16px;display:flex;flex-direction:column;gap:14px}
+  .center{align-items:center;justify-content:center;text-align:center}
+  .figcap{margin-top:12px;font-size:13px;text-align:center}
+  .figcap b{display:block;font-size:14px}
+  .figcap span{color:var(--ink2);font-size:12px}
+
+  /* ---------- 颜宝 ---------- */
+  .yb{display:block}
+  .mascot-card{background:var(--card);border:var(--bw) solid var(--ink);border-radius:20px;
+               box-shadow:var(--soft),var(--gloss);padding:14px;text-align:center}
+  .mascot-card svg{width:82px;height:82px;margin:0 auto 8px}
+  .mascot-card b{display:block;font-size:13px}
+  .mascot-card span{font-size:10.5px;color:var(--ink2);display:block;line-height:1.5}
+
+  /* ---------- 按钮 ---------- */
+  .btn{display:block;width:100%;text-align:center;cursor:pointer;font-family:inherit;
+    border:var(--bw) solid var(--ink);border-radius:var(--r-btn);padding:13px 18px;
+    font-size:14.5px;font-weight:700;background:var(--card);color:var(--ink);
+    box-shadow:var(--soft),var(--gloss);
+    transition:transform 120ms cubic-bezier(.34,1.56,.64,1),box-shadow 120ms ease-out}
+  .btn:active{transform:translateY(2px);box-shadow:0 0 0 var(--ink),var(--gloss)}
+  .btn-primary{background:var(--orange)}
+  .btn-primary:active{background:var(--orange-d)}
+  .btn-danger{background:var(--coral-i);color:#fff}
+  .btn-ghost{background:transparent;border-style:dashed;box-shadow:none}
+  .btn[disabled]{opacity:.4;box-shadow:none;cursor:not-allowed}
+  .btnrow{display:flex;gap:10px}
+
+  .staterow{display:flex;align-items:center;gap:12px;margin-bottom:11px}
+  .staterow .lbl{width:78px;flex:none;font-size:11px;color:var(--ink2);font-family:ui-monospace,Consolas,monospace}
+  .staterow .demo{flex:1;min-width:0}
+
+  /* ---------- 选项 ---------- */
+  .opt{display:flex;align-items:center;gap:11px;background:var(--card);border:var(--bw) solid var(--ink);
+       border-radius:16px;box-shadow:var(--hard);padding:11px 12px;font-size:13px;margin-bottom:9px}
+  .opt .k{flex:none;width:25px;height:25px;border:2px solid var(--ink);border-radius:50%;
+          background:var(--card);display:flex;align-items:center;justify-content:center;
+          font-weight:800;font-size:12.5px}
+  .opt .tail{margin-left:auto;flex:none;font-size:10px;font-weight:700;border:2px solid var(--ink);
+             border-radius:999px;padding:1px 7px;background:var(--card)}
+  .opt-pick{background:var(--yellow)}
+  .opt-right{background:var(--mint)}
+  .opt-wrong{background:var(--coral)}
+  .opt[disabled]{opacity:.45;box-shadow:none;border-style:dashed}
+
+  /* ---------- 标签 / 进度 ---------- */
+  .chip{display:inline-block;border:2px solid var(--ink);border-radius:999px;padding:2px 10px;
+        font-size:11px;font-weight:700;background:var(--card);box-shadow:0 1px 0 var(--ink);
+        margin:0 7px 8px 0}
+  .chip-y{background:var(--yellow)} .chip-m{background:var(--mint)} .chip-l{background:var(--lav)}
+  .chip-c{background:var(--coral)}
+  .prog{height:13px;border:var(--bw) solid var(--ink);border-radius:999px;background:var(--card);
+        box-shadow:var(--hard);overflow:hidden;margin-bottom:9px}
+  .prog i{display:block;height:100%;background:var(--orange);border-right:var(--bw) solid var(--ink)}
+
+  /* ---------- 图标 ---------- */
+  .icon-cell{text-align:center}
+  .icon-cell svg{width:30px;height:30px;fill:none;stroke:var(--ink);stroke-width:2;
+                 stroke-linecap:round;stroke-linejoin:round;margin:0 auto 6px;display:block}
+  .icon-cell span{font-size:10.5px;color:var(--ink2)}
+
+  /* ---------- 色板 ---------- */
+  .sw{border:var(--bw) solid var(--ink);border-radius:16px;box-shadow:var(--hard);overflow:hidden}
+  .sw .f{height:58px}
+  .sw .m{padding:7px 10px;background:var(--card);border-top:var(--bw) solid var(--ink);font-size:11px}
+  .sw .m b{display:block;font-size:11.5px}
+  .sw .m code{color:var(--ink2);font-size:10px}
+
+  table{width:100%;border-collapse:separate;border-spacing:0;font-size:12.5px}
+  th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--line)}
+  th{font-size:11px;color:var(--ink2);font-weight:600}
+  .t-display{font-size:34px;font-weight:800;line-height:1.2;letter-spacing:-1.5px}
+  .t-h1{font-size:22px;font-weight:800}
+  .t-h2{font-size:17px;font-weight:700}
+  .t-body{font-size:14.5px}
+  .t-mini{font-size:12px;color:var(--ink2)}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="y1" viewBox="0 0 120 120">
+      <circle cx="60" cy="66" r="38" fill="#FFA85C" stroke="#33302E" stroke-width="3"/>
+      <path d="M60 30 C57 20 63 15 68 12" fill="none" stroke="#33302E" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="47" cy="62" r="4.5" fill="#33302E"/><circle cx="73" cy="62" r="4.5" fill="#33302E"/>
+      <circle cx="48.6" cy="60" r="1.6" fill="#FFFCF7"/><circle cx="74.6" cy="60" r="1.6" fill="#FFFCF7"/>
+      <path d="M53 76 Q60 82 67 76" fill="none" stroke="#33302E" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="37" cy="74" r="6" fill="#FF9A9A" opacity=".7"/><circle cx="83" cy="74" r="6" fill="#FF9A9A" opacity=".7"/>
+    </symbol>
+    <symbol id="y2" viewBox="0 0 120 120">
+      <circle cx="60" cy="66" r="38" fill="#FFA85C" stroke="#33302E" stroke-width="3"/>
+      <path d="M60 30 C57 20 63 15 68 12" fill="none" stroke="#33302E" stroke-width="3" stroke-linecap="round"/>
+      <path d="M42 62 Q47 57 52 62" fill="none" stroke="#33302E" stroke-width="3.2" stroke-linecap="round"/>
+      <path d="M68 62 Q73 57 78 62" fill="none" stroke="#33302E" stroke-width="3.2" stroke-linecap="round"/>
+      <path d="M55 78 Q60 73 65 78" fill="none" stroke="#33302E" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="37" cy="74" r="6" fill="#FF9A9A" opacity=".7"/><circle cx="83" cy="74" r="6" fill="#FF9A9A" opacity=".7"/>
+    </symbol>
+    <symbol id="y3" viewBox="0 0 120 120">
+      <circle cx="60" cy="66" r="38" fill="#FFA85C" stroke="#33302E" stroke-width="3"/>
+      <path d="M60 30 C57 20 63 15 68 12" fill="none" stroke="#33302E" stroke-width="3" stroke-linecap="round"/>
+      <path d="M47 56 L49 62 L55 64 L49 66 L47 72 L45 66 L39 64 L45 62 Z" fill="#33302E"/>
+      <path d="M73 56 L75 62 L81 64 L75 66 L73 72 L71 66 L65 64 L71 62 Z" fill="#33302E"/>
+      <path d="M52 76 Q60 86 68 76" fill="none" stroke="#33302E" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="37" cy="74" r="6" fill="#FF9A9A" opacity=".7"/><circle cx="83" cy="74" r="6" fill="#FF9A9A" opacity=".7"/>
+    </symbol>
+    <symbol id="y4" viewBox="0 0 120 120">
+      <circle cx="60" cy="66" r="38" fill="#FFA85C" stroke="#33302E" stroke-width="3"/>
+      <path d="M60 30 C57 20 63 15 68 12" fill="none" stroke="#33302E" stroke-width="3" stroke-linecap="round"/>
+      <path d="M42 64 Q47 58 52 64" fill="none" stroke="#33302E" stroke-width="3.2" stroke-linecap="round"/>
+      <path d="M68 64 Q73 58 78 64" fill="none" stroke="#33302E" stroke-width="3.2" stroke-linecap="round"/>
+      <path d="M56 78 L64 78" stroke="#33302E" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="36" cy="75" r="7.5" fill="#FF9A9A" opacity=".8"/><circle cx="84" cy="75" r="7.5" fill="#FF9A9A" opacity=".8"/>
+      <path d="M92 40 Q99 34 104 42" fill="none" stroke="#33302E" stroke-width="2.6" stroke-linecap="round" opacity=".7"/>
+    </symbol>
+    <symbol id="y5" viewBox="0 0 120 120">
+      <circle cx="60" cy="66" r="38" fill="#FFA85C" stroke="#33302E" stroke-width="3"/>
+      <path d="M60 30 C57 20 63 15 68 12" fill="none" stroke="#33302E" stroke-width="3" stroke-linecap="round"/>
+      <path d="M42 60 Q47 53 52 60" fill="none" stroke="#33302E" stroke-width="3.4" stroke-linecap="round"/>
+      <path d="M68 60 Q73 53 78 60" fill="none" stroke="#33302E" stroke-width="3.4" stroke-linecap="round"/>
+      <path d="M50 74 Q60 88 70 74 Z" fill="#C4564F" stroke="#33302E" stroke-width="3" stroke-linejoin="round"/>
+      <circle cx="36" cy="73" r="7" fill="#FF9A9A" opacity=".75"/><circle cx="84" cy="73" r="7" fill="#FF9A9A" opacity=".75"/>
+      <path d="M18 34 L24 30 M18 44 L24 48 M102 34 L96 30 M102 44 L96 48" stroke="#B9A6F5" stroke-width="3" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="y6" viewBox="0 0 120 120">
+      <circle cx="60" cy="70" r="38" fill="#FFA85C" stroke="#33302E" stroke-width="3"/>
+      <path d="M60 34 C57 26 62 21 66 18" fill="none" stroke="#33302E" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="48" cy="66" r="4.5" fill="#33302E"/>
+      <path d="M69 66 Q74 61 79 66" fill="none" stroke="#33302E" stroke-width="3.2" stroke-linecap="round"/>
+      <path d="M54 80 Q60 85 66 80" fill="none" stroke="#33302E" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="38" cy="78" r="6" fill="#FF9A9A" opacity=".7"/>
+    </symbol>
+    <symbol id="y7" viewBox="0 0 120 120">
+      <path d="M26 78 Q20 62 30 54" fill="none" stroke="#33302E" stroke-width="3.4" stroke-linecap="round"/>
+      <path d="M94 78 Q100 62 90 54" fill="none" stroke="#33302E" stroke-width="3.4" stroke-linecap="round"/>
+      <circle cx="60" cy="68" r="36" fill="#FFA85C" stroke="#33302E" stroke-width="3"/>
+      <path d="M60 34 C57 25 63 20 67 17" fill="none" stroke="#33302E" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="48" cy="64" r="4.5" fill="#33302E"/><circle cx="72" cy="64" r="4.5" fill="#33302E"/>
+      <circle cx="49.6" cy="62" r="1.6" fill="#FFFCF7"/><circle cx="73.6" cy="62" r="1.6" fill="#FFFCF7"/>
+      <path d="M54 78 L66 78" stroke="#33302E" stroke-width="3.4" stroke-linecap="round"/>
+      <circle cx="38" cy="76" r="6" fill="#FF9A9A" opacity=".7"/><circle cx="82" cy="76" r="6" fill="#FF9A9A" opacity=".7"/>
+    </symbol>
+    <symbol id="y8" viewBox="0 0 120 120">
+      <circle cx="60" cy="68" r="38" fill="#FFA85C" stroke="#33302E" stroke-width="3"/>
+      <path d="M60 32 C58 24 63 20 66 17" fill="none" stroke="#33302E" stroke-width="3" stroke-linecap="round"/>
+      <path d="M43 66 Q48 71 53 66" fill="none" stroke="#33302E" stroke-width="3.2" stroke-linecap="round"/>
+      <path d="M67 66 Q72 71 77 66" fill="none" stroke="#33302E" stroke-width="3.2" stroke-linecap="round"/>
+      <path d="M53 84 Q60 76 67 84" fill="none" stroke="#33302E" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="38" cy="78" r="5.5" fill="#FF9A9A" opacity=".55"/>
+      <circle cx="82" cy="78" r="5.5" fill="#FF9A9A" opacity=".55"/>
+      <path d="M96 44 Q101 50 96 56" fill="none" stroke="#7ED9A8" stroke-width="3" stroke-linecap="round"/>
+    </symbol>
+  </defs>
+</svg>
+
+<div class="wrap">
+  <h1>原型 3 · 状态与规范</h1>
+  <p class="lead">AI 闯关学习小程序 · 漫画黏土风（治愈向）· 组件全状态 / 异常态 / 颜宝表情包 / 图标与令牌</p>
+  <div class="badge">开发交付参照 · 所有状态都应有明确视觉定义</div>
+
+  <h2>一 · 颜宝表情包</h2>
+  <p class="h2sub">8 个表情覆盖全流程。用途：加载陪伴、答题反馈、空状态、错误安抚。开发时按需替换为正式插画。</p>
+  <div class="grid4">
+    <div class="mascot-card"><svg viewBox="0 0 120 120"><use href="#y1"/></svg><b>期待</b><span>首页等待输入</span></div>
+    <div class="mascot-card"><svg viewBox="0 0 120 120"><use href="#y2"/></svg><b>思考</b><span>引导问题 / 生成中</span></div>
+    <div class="mascot-card"><svg viewBox="0 0 120 120"><use href="#y3"/></svg><b>惊喜</b><span>答对 / 通关</span></div>
+    <div class="mascot-card"><svg viewBox="0 0 120 120"><use href="#y4"/></svg><b>挠头</b><span>答错 / 尴尬</span></div>
+    <div class="mascot-card"><svg viewBox="0 0 120 120"><use href="#y5"/></svg><b>欢呼</b><span>连对 / 满星</span></div>
+    <div class="mascot-card"><svg viewBox="0 0 120 120"><use href="#y6"/></svg><b>探头</b><span>空状态</span></div>
+    <div class="mascot-card"><svg viewBox="0 0 120 120"><use href="#y7"/></svg><b>加油</b><span>连续答错时鼓励</span></div>
+    <div class="mascot-card"><svg viewBox="0 0 120 120"><use href="#y8"/></svg><b>委屈</b><span>网络错误 / 失败安抚</span></div>
+  </div>
+
+  <h2>二 · 组件全状态</h2>
+  <p class="h2sub">按住按钮可以试手感：下沉 2px、投影收为 0。</p>
+  <div class="grid2">
+    <div class="card">
+      <h4>按钮</h4>
+      <div class="staterow"><span class="lbl">主按钮</span><div class="demo"><button class="btn btn-primary">开始生成</button></div></div>
+      <div class="staterow"><span class="lbl">次按钮</span><div class="demo"><button class="btn">重新生成</button></div></div>
+      <div class="staterow"><span class="lbl">危险操作</span><div class="demo"><button class="btn btn-danger">删 除</button></div></div>
+      <div class="staterow"><span class="lbl">文字级</span><div class="demo"><button class="btn btn-ghost">跳过，直接看讲解</button></div></div>
+      <div class="staterow"><span class="lbl">禁用态</span><div class="demo"><button class="btn" disabled>开始生成</button></div></div>
+      <div class="staterow"><span class="lbl">并排</span><div class="demo"><div class="btnrow"><button class="btn">返回</button><button class="btn btn-primary">确定</button></div></div></div>
+    </div>
+
+    <div class="card">
+      <h4>选项条（答题页核心组件）</h4>
+      <div class="opt"><span class="k">A</span>默认态</div>
+      <div class="opt opt-pick"><span class="k">B</span>已选中<span class="tail">可改</span></div>
+      <div class="opt opt-right"><span class="k">C</span>答对<span class="tail">答对了</span></div>
+      <div class="opt opt-wrong"><span class="k">D</span>答错（用户选的）<span class="tail">你选的</span></div>
+      <div class="opt opt-right"><span class="k">E</span>答错时高亮正确答案<span class="tail">正确答案</span></div>
+      <div class="opt" disabled><span class="k">F</span>禁用（提交后其它选项）</div>
+      <div class="cap" style="margin-top:4px">答错时，"你选的"和"正确答案"必须同时可见。</div>
+    </div>
+
+    <div class="card">
+      <h4>标签与进度</h4>
+      <div style="margin-bottom:8px">
+        <span class="chip chip-y">单选题</span>
+        <span class="chip chip-m">难度 ★★☆</span>
+        <span class="chip chip-l">第 2 关</span>
+        <span class="chip chip-c">易错</span>
+        <span class="chip">内容由 AI 生成</span>
+      </div>
+      <div class="prog"><i style="width:20%"></i></div>
+      <div class="prog"><i style="width:62%"></i></div>
+      <div class="prog"><i style="width:100%"></i></div>
+      <div class="cap">进度条 20% / 62% / 100%，填充色为暖阳橙</div>
+    </div>
+
+    <div class="card">
+      <h4>卡片与层级</h4>
+      <div class="card" style="box-shadow:var(--hard);padding:14px;margin-bottom:11px">
+        <b style="font-size:13.5px">一级卡片（硬投影）</b>
+        <div class="cap">用于列表项、选项条</div>
+      </div>
+      <div class="card" style="padding:14px;margin-bottom:11px">
+        <b style="font-size:13.5px">二级卡片（硬投影 + 柔光）</b>
+        <div class="cap">用于输入区、题干、弹窗</div>
+      </div>
+      <div style="background:var(--yellow);border:var(--bw) solid var(--ink);border-radius:16px;
+                  padding:11px 13px;box-shadow:var(--hard)">
+        <b style="font-size:13px">提示条（暖黄）</b>
+        <div class="cap" style="color:#5C5340">用于建议、提醒、引导文案</div>
+      </div>
+    </div>
+  </div>
+
+  <h2>三 · 空状态与异常态</h2>
+  <p class="h2sub">错误文案的原则：不指责、说人话、给出下一步。所有异常都要有出口，不能是死胡同。</p>
+  <div class="grid4">
+
+    <figure>
+      <div class="phone">
+        <div class="sbar"><span>9:41</span><span>●●● ▮</span></div>
+        <div class="content center">
+          <svg class="yb" style="width:88px;height:88px"><use href="#y6"/></svg>
+          <b style="font-size:15px">这里还空着</b>
+          <div class="cap">还没有学习记录，去闯第一关吧</div>
+          <button class="btn btn-primary" style="max-width:200px">去学习</button>
+        </div>
+      </div>
+      <figcaption class="figcap"><b>空状态</b><span>学习记录为空</span></figcaption>
+    </figure>
+
+    <figure>
+      <div class="phone">
+        <div class="sbar"><span>9:41</span><span>●●● ▮</span></div>
+        <div class="content center">
+          <svg class="yb" style="width:88px;height:88px"><use href="#y8"/></svg>
+          <b style="font-size:15px">网络打了个盹</b>
+          <div class="cap">检查一下网络，然后点一下重试</div>
+          <button class="btn btn-primary" style="max-width:200px">重 试</button>
+          <div class="cap" style="text-decoration:underline">查看已下载的题目</div>
+        </div>
+      </div>
+      <figcaption class="figcap"><b>网络错误</b><span>提供降级出口</span></figcaption>
+    </figure>
+
+    <figure>
+      <div class="phone">
+        <div class="sbar"><span>9:41</span><span>●●● ▮</span></div>
+        <div class="content center">
+          <svg class="yb" style="width:88px;height:88px"><use href="#y4"/></svg>
+          <b style="font-size:15px">这次没生成成功</b>
+          <div class="cap">可能是内容太长或格式特殊，换个说法再试试？</div>
+          <div class="btnrow" style="width:100%;max-width:260px">
+            <button class="btn">改内容</button>
+            <button class="btn btn-primary">再试一次</button>
+          </div>
+        </div>
+      </div>
+      <figcaption class="figcap"><b>生成失败</b><span>不暴露技术细节</span></figcaption>
+    </figure>
+
+    <figure>
+      <div class="phone">
+        <div class="sbar"><span>9:41</span><span>●●● ▮</span></div>
+        <div class="content center">
+          <svg class="yb" style="width:88px;height:88px"><use href="#y2"/></svg>
+          <b style="font-size:15px">颜宝正在读你的内容</b>
+          <div class="prog" style="width:70%"><i style="width:42%"></i></div>
+          <div class="cap" style="max-width:230px">先梳理知识点，再出一道道题…<br>大约需要 20 秒</div>
+        </div>
+      </div>
+      <figcaption class="figcap"><b>生成中</b><span>给预期时长，减少焦虑</span></figcaption>
+    </figure>
+
+  </div>
+
+  <h2>四 · 图标规范</h2>
+  <p class="h2sub">线性图标 + 2px 描边 + 圆头端点，与粗线条风格统一。<b>禁止用 emoji 作为功能图标</b>（跨设备渲染不一致，无法控制风格）。</p>
+  <div class="card">
+    <div class="grid4" style="gap:16px">
+      <div class="icon-cell"><svg viewBox="0 0 24 24"><path d="M4 11 12 4l8 7v8a1 1 0 0 1-1 1h-5v-6h-4v6H5a1 1 0 0 1-1-1z"/></svg><span>首页</span></div>
+      <div class="icon-cell"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.5 3.1-6 7-6s7 2.5 7 6"/></svg><span>我的</span></div>
+      <div class="icon-cell"><svg viewBox="0 0 24 24"><path d="M15 5 8 12l7 7"/></svg><span>返回</span></div>
+      <div class="icon-cell"><svg viewBox="0 0 24 24"><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="m8.2 10.8 7.6-3.6M8.2 13.2l7.6 3.6"/></svg><span>分享</span></div>
+      <div class="icon-cell"><svg viewBox="0 0 24 24"><path d="M12 4v11m0 0 4-4m-4 4-4-4M5 19h14"/></svg><span>保存到相册</span></div>
+      <div class="icon-cell"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.7M20 4v5h-5"/></svg><span>重试</span></div>
+      <div class="icon-cell"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg><span>删除</span></div>
+      <div class="icon-cell"><svg viewBox="0 0 24 24"><path d="M6 21V4M6 5h11l-2.5 3.5L17 12H6"/></svg><span>举报 / 反馈</span></div>
+      <div class="icon-cell"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span>未解锁</span></div>
+      <div class="icon-cell"><svg viewBox="0 0 24 24"><path d="m12 4 2.5 5 5.5.8-4 3.9.9 5.5-4.9-2.6-4.9 2.6.9-5.5-4-3.9 5.5-.8z"/></svg><span>星级</span></div>
+      <div class="icon-cell"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 8v4.5l3 2"/></svg><span>用时</span></div>
+      <div class="icon-cell"><svg viewBox="0 0 24 24"><path d="M4 19V10M12 19V5M20 19v-6"/></svg><span>统计</span></div>
+    </div>
+  </div>
+
+  <h2>五 · 色彩与文字令牌</h2>
+  <p class="h2sub">所有色值都经过对比度校验，正文文字一律 ≥ 4.5:1。</p>
+  <div class="grid3" style="grid-template-columns:repeat(auto-fill,minmax(160px,1fr))">
+    <div class="sw"><div class="f" style="background:#FFFCF7"></div><div class="m"><b>纸张底</b><code>#FFFCF7</code></div></div>
+    <div class="sw"><div class="f" style="background:#33302E"></div><div class="m"><b>墨线 / 主文字</b><code>#33302E</code></div></div>
+    <div class="sw"><div class="f" style="background:#FFA85C"></div><div class="m"><b>暖阳橙</b><code>#FFA85C</code></div></div>
+    <div class="sw"><div class="f" style="background:#7ED9A8"></div><div class="m"><b>薄荷绿</b><code>#7ED9A8</code></div></div>
+    <div class="sw"><div class="f" style="background:#FF9A9A"></div><div class="m"><b>珊瑚红</b><code>#FF9A9A</code></div></div>
+    <div class="sw"><div class="f" style="background:#B9A6F5"></div><div class="m"><b>薰衣草紫</b><code>#B9A6F5</code></div></div>
+    <div class="sw"><div class="f" style="background:#FFE08A"></div><div class="m"><b>暖黄</b><code>#FFE08A</code></div></div>
+    <div class="sw"><div class="f" style="background:#C4564F"></div><div class="m"><b>深红（错误文字）</b><code>#C4564F</code></div></div>
+    <div class="sw"><div class="f" style="background:#8A8078"></div><div class="m"><b>次级文字</b><code>#8A8078</code></div></div>
+  </div>
+
+  <div class="card" style="margin-top:22px">
+    <table>
+      <tr><th>层级</th><th>规格</th><th>示例</th></tr>
+      <tr><td>展示级</td><td>40 / 800 · 数字用 tabular-nums</td><td><span class="t-display">87%</span></td></tr>
+      <tr><td>大标题 H1</td><td>22 / 800</td><td><span class="t-h1">今天想学点什么？</span></td></tr>
+      <tr><td>标题 H2</td><td>17 / 700</td><td><span class="t-h2">货币政策的三大工具</span></td></tr>
+      <tr><td>正文</td><td>14.5 / 400 · 行高 1.7</td><td><span class="t-body">存款准备金率是央行要求的缴存比例。</span></td></tr>
+      <tr><td>最小号</td><td>12 / 400（不再更小）</td><td><span class="t-mini">内容由 AI 生成，仅供学习参考</span></td></tr>
+    </table>
+    <p class="cap" style="margin:12px 0 0">
+      字体族：<code>PingFang SC / HarmonyOS Sans SC / MiSans / Microsoft YaHei</code>
+      —— 小程序主包限制 2MB，中文必须用系统字体，不能引入字体包。
+    </p>
+  </div>
+
+  <div class="card" style="margin-top:22px">
+    <h4>圆角 / 描边 / 阴影 令牌</h4>
+    <table>
+      <tr><th>令牌</th><th>值</th><th>用途</th></tr>
+      <tr><td>--bw</td><td>2.5px solid #33302E</td><td>所有描边</td></tr>
+      <tr><td>--r-card</td><td>24px</td><td>卡片、弹窗</td></tr>
+      <tr><td>--r-btn</td><td>18px</td><td>按钮、输入框</td></tr>
+      <tr><td>--hard</td><td>0 2px 0 #33302E</td><td>硬投影（本版已由 3px 收到 2px）</td></tr>
+      <tr><td>--soft</td><td>0 2px 0 + 0 10px 20px rgba(51,48,46,.06)</td><td>卡片阴影</td></tr>
+      <tr><td>--gloss</td><td>inset 0 2px 0 rgba(255,255,255,.65)</td><td>黏土内高光</td></tr>
+      <tr><td>按压</td><td>translateY(2px) + 投影收为 0</td><td>全部可点元素</td></tr>
+      <tr><td>缓动</td><td>120ms cubic-bezier(.34,1.56,.64,1)</td><td>按压与弹入</td></tr>
+    </table>
+  </div>
+
+</div>
+</body>
+</html>
